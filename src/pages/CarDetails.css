@@ -421,3 +421,10 @@
     flex-direction: column;
   }
 }
+
+/* Detail viewers stay centered independently of the home hero. */
+.vehicle-intro + .vehicle-3d-section { padding-top: 35px; }
+.vehicle-3d-viewer .assembly-panel { bottom: 24px; right: 24px; width: min(320px, calc(100% - 48px)); }
+.model-credit { margin-top: 18px; color: #929292; font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
+.model-credit p + p { margin-top: 8px; }
+.model-credit a { color: #ff956e; text-decoration: underline; }

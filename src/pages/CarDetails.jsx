@@ -1,7 +1,9 @@
+import { SiteHeader, SiteFooter } from "../components/SiteChrome";
 
 import { useEffect } from "react";
 import { Link, useParams } from "react-router";
 
+import { carModels } from "../data/carModels";
 import { cars } from "../data/cars";
 import CarViewer from "../components/CarViewer";
 
@@ -56,25 +58,13 @@ function CarDetails() {
     );
   }
 
-  const has3DModel =
-    car.brand === "Porsche" &&
-    car.name === "911 GT3 RS";
+  const model = carModels[car.id];
+  const has3DModel = Boolean(model);
 
   return (
     <main className="details-page">
       {/* HEADER */}
-      <header className="details-navbar">
-        <Link to="/" className="logo">
-          Limitless-Deal Hub<span>.</span>
-        </Link>
-
-        <Link
-          to="/#collection"
-          className="details-back-link"
-        >
-          ← BACK TO COLLECTION
-        </Link>
-      </header>
+      <SiteHeader />
 
       <div className="vehicle-container">
         {/* PAGE INTRO */}
@@ -102,8 +92,41 @@ function CarDetails() {
           </div>
         </div>
 
+        {/* 3D ASSEMBLY SHOWROOM */}
+        {has3DModel && (
+          <section className="vehicle-3d-section">
+            <div className="vehicle-3d-heading">
+              <p className="eyebrow">
+                IMMERSIVE EXPERIENCE
+              </p>
+
+              <h2>
+                EXPLORE IN <span>3D.</span>
+              </h2>
+
+              <p>
+                Drag with your mouse to inspect
+                the {car.brand} {car.name} from different angles.
+              </p>
+            </div>
+
+            <div className="vehicle-3d-viewer">
+              <CarViewer key={model.url} modelUrl={model.url} modelRotation={model.rotation || 0} modelName={`${car.brand} ${car.name}`} />
+            </div>
+
+            <div className="model-credit">
+              {model.note && <p>{model.note}</p>}
+              <p>3D model: <a href={model.source} target="_blank" rel="noreferrer">{model.title}</a> by {model.author}. {model.license}. Adapted for assembly animation and normalized for display.{car.id === 3 ? " Geometry and textures reduced for web display." : ""}</p>
+            </div>
+            <div className="viewer-hint">
+              <span>DRAG TO ROTATE</span>
+              <span>INTERACTIVE 3D EXPERIENCE</span>
+            </div>
+          </section>
+        )}
+
         {/* VEHICLE PHOTO */}
-        <div className="vehicle-main-image">
+        {!has3DModel && <div className="vehicle-main-image">
           {car.image ? (
             <img
               src={car.image}
@@ -121,7 +144,7 @@ function CarDetails() {
           <span className="vehicle-image-label">
             {car.brand.toUpperCase()} / {car.year}
           </span>
-        </div>
+        </div>}
 
         {/* PERFORMANCE */}
         <section className="vehicle-performance">
@@ -220,35 +243,6 @@ function CarDetails() {
           </div>
         </section>
 
-        {/* PORSCHE 3D SHOWROOM */}
-        {has3DModel && (
-          <section className="vehicle-3d-section">
-            <div className="vehicle-3d-heading">
-              <p className="eyebrow">
-                IMMERSIVE EXPERIENCE
-              </p>
-
-              <h2>
-                EXPLORE IN <span>3D.</span>
-              </h2>
-
-              <p>
-                Drag with your mouse to inspect
-                the Porsche from different angles.
-              </p>
-            </div>
-
-            <div className="vehicle-3d-viewer">
-              <CarViewer />
-            </div>
-
-            <div className="viewer-hint">
-              <span>DRAG TO ROTATE</span>
-              <span>INTERACTIVE 3D EXPERIENCE</span>
-            </div>
-          </section>
-        )}
-
         {/* BOTTOM */}
         <div className="vehicle-bottom">
           <div>
@@ -270,15 +264,7 @@ function CarDetails() {
         </div>
       </div>
 
-      <footer className="vehicle-footer">
-        <span>
-          © {new Date().getFullYear()} Limitless-Deal Hub
-        </span>
-
-        <span>
-          COMPUTER GRAPHICS PROJECT
-        </span>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

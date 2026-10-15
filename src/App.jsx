@@ -1,3 +1,4 @@
+import { SiteHeader, SiteFooter, ExperienceBand, ShowroomFAQ } from "./components/SiteChrome";
 
 import { useEffect, useRef } from "react";
 import { Routes, Route, Link } from "react-router";
@@ -6,6 +7,7 @@ import { gsap } from "gsap";
 import CarViewer from "./components/CarViewer";
 import CarCollection from "./components/CarCollection";
 import CarDetails from "./pages/CarDetails";
+import About from "./pages/About";
 
 import "./App.css";
 
@@ -13,6 +15,7 @@ function Home() {
   const pageRef = useRef(null);
 
   useEffect(() => {
+    if (window.location.hash === "#collection") document.getElementById("collection")?.scrollIntoView();
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ".hero-heading > *",
@@ -52,21 +55,7 @@ function Home() {
   return (
     <main className="website" ref={pageRef}>
       {/* NAVIGATION */}
-      <header className="navbar">
-        <Link to="/" className="logo">
-          Limitless-Deal Hub<span>.</span>
-        </Link>
-
-        <nav className="nav-links">
-          <a href="#home">Home</a>
-          <a href="#collection">Collection</a>
-          <a href="#about">About</a>
-        </nav>
-
-        <a href="#collection" className="nav-button">
-          Explore Cars ↗
-        </a>
-      </header>
+      <SiteHeader />
 
       {/* HERO */}
       <section className="hero" id="home">
@@ -122,23 +111,13 @@ function Home() {
         <span>AUDI</span>
       </div>
 
+      <ExperienceBand />
+
       {/* CAR COLLECTION */}
       <CarCollection />
 
-      {/* ABOUT */}
-      <section className="about-section" id="about">
-        <p className="eyebrow">
-          BEYOND THE ORDINARY
-        </p>
-
-        <h2>DRIVEN BY EXCELLENCE.</h2>
-
-        <p>
-          Explore a curated collection of exceptional
-          automobiles, brought to life through immersive
-          3D experiences.
-        </p>
-      </section>
+      <ShowroomFAQ />
+      <SiteFooter />
     </main>
   );
 }
@@ -148,6 +127,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
 
       <Route
         path="/cars/:id"
@@ -181,3 +161,4 @@ function App() {
 }
 
 export default App;
+
