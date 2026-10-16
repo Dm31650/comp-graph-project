@@ -60,3 +60,11 @@
  .footer-bottom { flex-direction: column; line-height: 1.6; }
 }
 @media (prefers-reduced-motion: reduce) { .collection-card, .collection-card-image img, .footer-invite > a { transition: none; } .collection-card:hover, .collection-card:hover .collection-card-image img { transform: none; } }
+
+/* Preserve the header's measured space while navigation follows the viewport. */
+.site-header-space { height: 90px; }
+.site-header-space .site-header { position: fixed; inset: 0 0 auto; width: 100%; z-index: 40; transform: translateY(0); transition: transform 220ms ease; box-shadow: 0 8px 30px #00000025; }
+.site-header-space .site-header--hidden { transform: translateY(calc(-100% - 2px)); pointer-events: none; }
+.site-header-space .site-header:focus-within { transform: translateY(0); pointer-events: auto; }
+@media (max-width: 768px) { .site-header-space { height: 100px; } }
+@media (prefers-reduced-motion: reduce) { .site-header-space .site-header { transition: none; } }

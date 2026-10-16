@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useCart } from "../cart/CartContext";
 import { Link, useLocation } from "react-router";
 import { cars } from "../data/cars";
@@ -6,7 +7,43 @@ import "./SiteChrome.css";
 export function SiteHeader() {
   const { pathname } = useLocation();
   const { count } = useCart();
-  return <header className="site-header">
+  const headerRef = useRef(null);
+  const spacerRef = useRef(null);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    const spacer = spacerRef.current;
+    let anchor = Math.max(0, window.scrollY);
+    let frame = 0;
+    const measure = () => { spacer.style.height = `${header.offsetHeight}px`; };
+    const reveal = () => header.classList.remove("site-header--hidden");
+    const update = () => {
+      frame = 0;
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      const current = Math.max(0, Math.min(window.scrollY, maxScroll));
+      if (current <= header.offsetHeight || header.contains(document.activeElement)) {
+        reveal();
+        anchor = current;
+        return;
+      }
+      if (Math.abs(current - anchor) < 8) return;
+      header.classList.toggle("site-header--hidden", current > anchor);
+      anchor = current;
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    measure();
+    reveal();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [pathname]);
+
+  return <div ref={spacerRef} className="site-header-space"><header ref={headerRef} className="site-header" onFocusCapture={() => headerRef.current?.classList.remove("site-header--hidden")}>
     <Link to="/" className="logo" aria-label="Limitless-Deal Hub home">Limitless-Deal Hub<span>.</span></Link>
     <nav aria-label="Main navigation">
       <Link to="/" aria-current={pathname === "/" ? "page" : undefined}>Home</Link>
@@ -16,7 +53,7 @@ export function SiteHeader() {
       <Link to="/cart" aria-current={pathname === "/cart" ? "page" : undefined} aria-label={`Cart, ${count} items`}>Cart <span className="cart-nav-count" aria-hidden="true">{count}</span></Link>
     </nav>
     <Link className="site-header-cta" to="/cars/1">ENTER THE SHOWROOM <span aria-hidden="true">↗</span></Link>
-  </header>;
+  </header></div>;
 }
 
 export function ExperienceBand() {
