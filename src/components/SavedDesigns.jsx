@@ -6,11 +6,12 @@ import { cars } from '../data/cars';
 import { carModels } from '../data/carModels';
 import CarViewer from './CarViewer';
 
-export default function SavedDesigns() {
+export default function SavedDesigns({ onCountChange }) {
  const [designs,setDesigns] = useState([]); const [loading,setLoading] = useState(true); const [busy,setBusy] = useState(false); const [error,setError] = useState(''); const [selected,setSelected] = useState(null); const [notice,setNotice] = useState('');
  const {dispatch,pending,loading:cartLoading,count,hasGuestCart,importGuest,storageError} = useCart();
  const load = async () => { setLoading(true); try { setDesigns((await garageRequest('designs')).designs); setError(''); } catch(error) { setError(error.message); } finally {setLoading(false);} };
  useEffect(()=>{load();},[]);
+ useEffect(()=>{onCountChange?.(loading || error ? null : designs.length);},[designs.length,loading,error,onCountChange]);
  useEffect(()=>{if(selected)document.getElementById('saved-design-preview')?.scrollIntoView({block:'center'});},[selected]);
  const remove = async id => { setBusy(true); try { setDesigns((await garageRequest('designs','DELETE',{id})).designs); if(selected?.id===id)setSelected(null); setError(''); } catch(error){setError(error.message);} finally {setBusy(false);} };
  const car = selected && cars.find(car=>car.id===selected.carId); const model = selected && carModels[selected.carId];

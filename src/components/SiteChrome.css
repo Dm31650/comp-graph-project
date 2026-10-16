@@ -69,3 +69,11 @@
 @media (max-width: 768px) { .site-header-space { height: 100px; } }
 @media (prefers-reduced-motion: reduce) { .site-header-space .site-header { transition: none; } }
 .header-actions{display:flex;align-items:center;gap:12px;margin-left:auto;flex-shrink:0}.header-icon{position:relative;display:grid;place-items:center;width:44px;height:44px;border:1px solid #ffffff30;border-radius:50%;color:#eee}.header-icon:hover{color:#ff956e;border-color:#ff6534;background:#ff653410}.header-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.header-badge{position:absolute;top:-5px;right:-5px;min-width:18px;padding:2px 4px;border-radius:12px;background:#ff6534;color:#111;font-size:10px;text-align:center}.profile-online{position:absolute;bottom:1px;right:1px;width:9px;height:9px;border-radius:50%;background:#62d5a1;border:2px solid #0b0c0e}@media(max-width:768px){.site-header nav{order:3;width:100%;justify-content:space-between;gap:12px}.header-actions{margin-left:auto}.site-header{gap:12px}}
+/* Balanced columns keep navigation at the center of the viewport. */
+.site-header-space .site-header{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:28px;box-sizing:border-box}
+.site-header .logo{justify-self:start;white-space:nowrap}
+.site-header nav{justify-self:center;justify-content:center;gap:28px}
+.site-header .header-actions{justify-self:end;margin-left:0}
+.header-avatar{width:100%;height:100%;object-fit:cover;border-radius:50%}
+@media(max-width:1100px){.site-header-space .site-header{padding-left:4%;padding-right:4%;gap:18px}.site-header .logo{font-size:21px}.site-header nav{gap:18px}}
+@media(max-width:850px){.site-header-space .site-header{grid-template-columns:minmax(0,1fr) auto;gap:16px}.site-header nav{grid-column:1/-1;grid-row:2;width:100%;gap:clamp(12px,5vw,32px);order:initial}.site-header .header-actions{grid-column:2;grid-row:1}}

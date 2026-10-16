@@ -16,9 +16,10 @@ db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
 db.exec(`CREATE TABLE IF NOT EXISTS carts (user_id TEXT PRIMARY KEY REFERENCES users(id), items TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS designs (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), car_id INTEGER NOT NULL, name TEXT NOT NULL, configuration TEXT NOT NULL, updated_at TEXT NOT NULL);
  CREATE INDEX IF NOT EXISTS designs_owner ON designs(user_id);`);
+if (!db.prepare('PRAGMA table_info(users)').all().some(column => column.name === 'avatar')) db.exec('ALTER TABLE users ADD COLUMN avatar TEXT');
 const derive = promisify(scrypt);
 const digest = token => createHash('sha256').update(token).digest('hex');
-const publicUser = u => u ? { id: u.id, name: u.name, email: u.email, color: u.color } : null;
+const publicUser = u => u ? { id: u.id, name: u.name, email: u.email, color: u.color, avatar: u.avatar || null } : null;
 const secure = process.env.NODE_ENV === 'production';
 const origin = process.env.APP_ORIGIN || 'http://localhost:5173';
 const attempts = new Map();
@@ -96,9 +97,14 @@ createServer(async (req, res) => {
   }
   if (path === '/api/profile' && req.method === 'PATCH') {
    if (!user) throw fail(401, 'Please sign in first.');
-   const { name, color } = await body(req);
+   const { name, color, avatar } = await body(req);
    if (typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 60 || !/^#[a-f0-9]{6}$/i.test(color || '')) throw fail(400, 'Enter a name of 2–60 characters and a valid color.');
-   db.prepare('UPDATE users SET name=?, color=? WHERE id=?').run(name.trim(),color,user.id);
+   if (avatar !== undefined && avatar !== null) {
+    if (typeof avatar !== 'string' || avatar.length > 160000 || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(avatar)) throw fail(400, 'Choose a valid profile photo.');
+    const bytes = Buffer.from(avatar.split(',')[1], 'base64');
+    if (bytes.length < 4 || bytes[0] !== 255 || bytes[1] !== 216 || bytes.at(-2) !== 255 || bytes.at(-1) !== 217) throw fail(400, 'Invalid profile photo.');
+   }
+   db.prepare('UPDATE users SET name=?, color=?, avatar=? WHERE id=?').run(name.trim(),color,avatar === undefined ? user.avatar : avatar,user.id);
    return send(200, { user: publicUser(db.prepare('SELECT * FROM users WHERE id=?').get(user.id)) });
   }
   send(404, { error: 'Not found.' });

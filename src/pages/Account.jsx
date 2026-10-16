@@ -1,3 +1,4 @@
+import ProfileDashboard from './ProfileDashboard';
 import SavedDesigns from '../components/SavedDesigns';
 import { useCart } from '../cart/CartContext';
 import { useEffect, useState } from 'react';
@@ -17,6 +18,7 @@ export default function Account({ mode = 'login' }) {
  if (loading) return <main className="website"><SiteHeader/><p className="account-loading" role="status">Opening your garage…</p></main>;
  if (profile && !user) return <Navigate to="/sign-in" replace/>;
  if (!profile && user) return <Navigate to="/profile" replace/>;
+ if (profile) return <ProfileDashboard/>;
  const submit = async event => {
   event.preventDefault(); setError(''); setMessage(''); setBusy(true);
   const data = Object.fromEntries(new FormData(event.currentTarget));

@@ -54,8 +54,8 @@ export function SiteHeader() {
       <Link to="/contact" aria-current={pathname === "/contact" ? "page" : undefined}>Contact Us</Link>
     </nav>
 
-    <Link className="site-header-cta" to="/cars/1">ENTER THE SHOWROOM <span aria-hidden="true">↗</span></Link>
-    <div className="header-actions"><Link className="header-icon" to="/cart" aria-label={`Cart, ${count} items`} title="Your cart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h2l2.2 12h11l2-8H6M9 20h.01M18 20h.01"/></svg><span className="header-badge">{count}</span></Link><Link className="header-icon profile-icon" to={user ? '/profile' : '/sign-in'} aria-label={user ? 'My profile and saved designs' : 'Sign in'} title={user ? user.name : 'Sign in'}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/></svg>{user && <span className="profile-online"/>}</Link></div>
+
+    <div className="header-actions"><Link className="header-icon" to="/cart" aria-label={`Cart, ${count} items`} title="Your cart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h2l2.2 12h11l2-8H6M9 20h.01M18 20h.01"/></svg><span className="header-badge">{count}</span></Link><Link className="header-icon profile-icon" to={user ? '/profile' : '/sign-in'} aria-label={user ? 'My profile and saved designs' : 'Sign in'} title={user ? user.name : 'Sign in'}>{user?.avatar ? <img className="header-avatar" src={user.avatar} alt=""/> : <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/></svg>}{user && <span className="profile-online"/>}</Link></div>
   </header></div>;
 }
 
