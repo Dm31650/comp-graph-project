@@ -1,3 +1,5 @@
+import Account from "./pages/Account";
+import { AuthProvider } from "./auth/AuthContext";
 import { SiteHeader, SiteFooter, ExperienceBand, ShowroomFAQ } from "./components/SiteChrome";
 
 import { useEffect, useRef } from "react";
@@ -130,8 +132,11 @@ function Home() {
 /* ALL WEBSITE ROUTES */
 function App() {
   return (
-    <CartProvider><div className="site-experience"><InteractiveBackground /><div className="site-content"><Routes>
+    <AuthProvider><CartProvider><div className="site-experience"><InteractiveBackground /><div className="site-content"><Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/sign-in" element={<Account key="login" />} />
+      <Route path="/register" element={<Account key="register" mode="register" />} />
+      <Route path="/profile" element={<Account key="profile" mode="profile" />} />
       <Route path="/about" element={<About />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/contact" element={<Contact />} />
@@ -163,7 +168,7 @@ function App() {
           </main>
         }
       />
-    </Routes></div></div></CartProvider>
+    </Routes></div></div></CartProvider></AuthProvider>
   );
 }
 

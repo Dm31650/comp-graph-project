@@ -3,8 +3,8 @@ export const formatMoney = (amount) => new Intl.NumberFormat("en-US", { style: "
 export function normalizeDesign(value) {
   if (!value || typeof value !== "object") return null;
   const color = (v, fallback) => /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : fallback;
-  const targets = Object.fromEntries(["paint", "wheels", "glass"].filter(key => typeof value.targets?.[key] === "string").map(key => [key, value.targets[key]]));
-  return { paint: color(value.paint, "#aeb9c6"), finish: ["Gloss", "Matte", "Metallic"].includes(value.finish) ? value.finish : "Gloss", design: ["Clean", "Racing stripes", "Heritage", "Track number"].includes(value.design) ? value.design : "Clean", accent: color(value.accent, "#ff6534"), wheels: color(value.wheels, "#b9bec7"), tint: Number.isFinite(value.tint) ? Math.max(0, Math.min(85, value.tint)) : 45, targets };
+  const targets = Object.fromEntries(["paint", "wheels", "glass"].filter(key => Array.isArray(value.targets?.[key])).map(key => [key, [...new Set(value.targets[key].filter(id => typeof id === "string" && /^part:\d+:\d+$/.test(id)))].sort().slice(0, 1000)]));
+  return { paint: color(value.paint, "#aeb9c6"), finish: ["Gloss", "Matte", "Metallic"].includes(value.finish) ? value.finish : "Gloss", design: ["Clean", "Racing stripes", "Heritage", "Track number"].includes(value.design) ? value.design : "Clean", accent: color(value.accent, "#ff6534"), wheels: color(value.wheels, "#b9bec7"), tint: Number.isFinite(value.tint) ? Math.max(0, Math.min(85, value.tint)) : 45, studio: ["Daylight", "Warm", "Track"].includes(value.studio) ? value.studio : "Daylight", targets };
 }
 export const itemKey = (carId, design) => `${carId}:${JSON.stringify(normalizeDesign(design))}`;
 export function cleanCart(value) {

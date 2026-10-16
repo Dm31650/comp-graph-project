@@ -4,6 +4,12 @@ import { Component, Suspense, useEffect, useState } from "react";
 import CarModel from "./CarModel";
 import "./CarViewer.css";
 
+const studios = {
+  Daylight: { ambient: 0.7, key: "#ffffff", fill: "#dbeaff", accent: "#ff6534", keyPower: 3, accentPower: 20, strip: "#ffffff" },
+  Warm: { ambient: 0.52, key: "#ffd1a1", fill: "#ff9c67", accent: "#ff6b38", keyPower: 3.3, accentPower: 26, strip: "#ffc18a" },
+  Track: { ambient: 0.34, key: "#d5e6ff", fill: "#4d76c8", accent: "#4c8fff", keyPower: 3.6, accentPower: 30, strip: "#75a7ff" },
+};
+
 class ViewerBoundary extends Component {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
@@ -25,12 +31,13 @@ function ResponsiveCamera() {
   return null;
 }
 
-export default function CarViewer({ modelUrl = "/models/porsche/scene.gltf", modelName = "Porsche", modelRotation = 0, customization, onPartSelect }) {
+export default function CarViewer({ modelUrl = "/models/porsche/scene.gltf", modelName = "Porsche", modelRotation = 0, customization, onPartSelect, studio = "Daylight" }) {
   const [progress, setProgress] = useState(0);
   const [floorY, setFloorY] = useState(null);
   const [run, setRun] = useState(0);
   const [skip, setSkip] = useState(Boolean(customization));
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const lighting = studios[studio] || studios.Daylight;
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => setReducedMotion(query.matches);
@@ -44,17 +51,17 @@ export default function CarViewer({ modelUrl = "/models/porsche/scene.gltf", mod
       <ViewerBoundary>
         <Canvas camera={{ position: [-7, 3.5, -9], fov: 42 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: true }}>
           <ResponsiveCamera />
-          <ambientLight intensity={0.7} />
-          <directionalLight position={[5, 10, 5]} intensity={3} />
-          <directionalLight position={[-5, 4, -5]} intensity={2} />
-          <pointLight position={[-4, 3, 3]} intensity={30} color="#ff6534" />
+          <ambientLight intensity={lighting.ambient} />
+          <directionalLight position={[5, 10, 5]} intensity={lighting.keyPower} color={lighting.key} />
+          <directionalLight position={[-5, 4, -5]} intensity={2} color={lighting.fill} />
+          <pointLight position={[-4, 3, 3]} intensity={lighting.accentPower} color={lighting.accent} />
           <Suspense fallback={null}>
             <CarModel modelUrl={modelUrl} modelRotation={modelRotation} run={run} skip={skip} reducedMotion={reducedMotion} onProgress={setProgress} onReady={setFloorY} customization={customization} onPartSelect={onPartSelect} />
             {/* Local studio reflections: no external HDR download required. */}
             <Environment resolution={128}>
-              <Lightformer position={[0, 5, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[10, 4, 1]} intensity={3} />
-              <Lightformer position={[-5, 2, 0]} rotation={[0, Math.PI / 2, 0]} scale={[8, 3, 1]} intensity={2} />
-              <Lightformer position={[5, 2, 0]} rotation={[0, -Math.PI / 2, 0]} scale={[8, 3, 1]} intensity={2} />
+              <Lightformer position={[0, 5, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[10, 4, 1]} intensity={3} color={lighting.strip} />
+              <Lightformer position={[-5, 2, 0]} rotation={[0, Math.PI / 2, 0]} scale={[8, 3, 1]} intensity={2} color={lighting.fill} />
+              <Lightformer position={[5, 2, 0]} rotation={[0, -Math.PI / 2, 0]} scale={[8, 3, 1]} intensity={2} color={lighting.key} />
             </Environment>
             {ready && <ContactShadows position={[0, floorY - 0.025, 0]} opacity={0.5} scale={16} blur={2.5} far={5} resolution={256} />}
           </Suspense>

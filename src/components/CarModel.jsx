@@ -49,7 +49,7 @@ function CarModel({ modelUrl = "/models/porsche/scene.gltf", modelRotation = 0, 
     return () => timeline.kill();
   }, [assembly, run, skip, reducedMotion, onProgress, onReady]);
 
-  return <primitive object={assembly.root} rotation={[0, modelRotation, 0]} dispose={null} onClick={onPartSelect ? (event) => { event.stopPropagation(); const materials = Array.isArray(event.object.material) ? event.object.material : [event.object.material]; const material = materials[event.face?.materialIndex || 0]; if (material) onPartSelect(material.name); } : undefined} />;
+  return <primitive object={assembly.root} rotation={[0, modelRotation, 0]} dispose={null} onClick={onPartSelect ? (event) => { event.stopPropagation(); const materials = Array.isArray(event.object.material) ? event.object.material : [event.object.material]; const material = materials[event.face?.materialIndex || 0]; if (material) onPartSelect(material.userData.customPartId); } : undefined} />;
 }
 
 useGLTF.preload("/models/porsche/scene.gltf");

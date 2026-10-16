@@ -4,10 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.mjs",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:client": "vite",
+    "start:api": "node server/index.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
@@ -24,5 +26,8 @@
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
     "vite": "^8.3.4"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }
