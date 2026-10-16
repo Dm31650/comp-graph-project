@@ -20,16 +20,20 @@ function launch(args) {
 }
 process.on('SIGINT', () => stop());
 process.on('SIGTERM', () => stop());
-launch(['server/index.mjs']);
-let ready = false;
-for (let attempt = 0; attempt < 40 && !closing; attempt++) {
+async function apiIsHealthy() {
  try {
   const response = await fetch(`http://127.0.0.1:${apiPort}/api/health`, { signal: AbortSignal.timeout(1000) });
   const health = await response.json();
-  ready = response.ok && health.service === 'showroom-accounts' && health.database === 'ready';
- } catch { /* Wait for the database and HTTP listener. */ }
- if (ready) break;
+  return response.ok && health.service === 'showroom-accounts' && health.database === 'ready';
+ } catch { return false; }
+}
+// A restarted dev session can find an API server from the previous run still bound to the port.
+let ready = await apiIsHealthy();
+if (ready) console.log(`Reusing account server already running on port ${apiPort}`);
+else launch(['server/index.mjs']);
+for (let attempt = 0; attempt < 40 && !closing && !ready; attempt++) {
  await delay(250);
+ ready = await apiIsHealthy();
 }
 if (!closing && ready) launch(['node_modules/vite/bin/vite.js', '--port', '5173', '--strictPort']);
 else if (!closing) { console.error('The account server could not start. Check the error above; the website has not been started.'); stop(1); }
