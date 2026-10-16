@@ -35,5 +35,21 @@ for (let attempt = 0; attempt < 40 && !closing && !ready; attempt++) {
  await delay(250);
  ready = await apiIsHealthy();
 }
-if (!closing && ready) launch(['node_modules/vite/bin/vite.js', '--port', '5173', '--strictPort']);
+async function viteIsRunning() {
+ try {
+  const response = await fetch('http://127.0.0.1:5173/@vite/client', { signal: AbortSignal.timeout(1000) });
+  return response.ok;
+ } catch { return false; }
+}
+function startVite() { launch(['node_modules/vite/bin/vite.js', '--port', '5173', '--strictPort']); }
+if (!closing && ready) {
+ if (await viteIsRunning()) {
+  // A website server from the previous run still owns the port; keep this session alive and take over if it exits.
+  console.log('Reusing website dev server already running on port 5173');
+  const watcher = setInterval(async () => {
+   if (closing) return clearInterval(watcher);
+   if (!(await viteIsRunning())) { clearInterval(watcher); startVite(); }
+  }, 2000);
+ } else startVite();
+}
 else if (!closing) { console.error('The account server could not start. Check the error above; the website has not been started.'); stop(1); }
