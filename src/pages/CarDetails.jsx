@@ -1,3 +1,4 @@
+import AddToCartButton from "../components/AddToCartButton";
 import { SiteHeader, SiteFooter } from "../components/SiteChrome";
 
 import { useEffect } from "react";
@@ -6,6 +7,7 @@ import { Link, useParams } from "react-router";
 import { carModels } from "../data/carModels";
 import { cars } from "../data/cars";
 import CarViewer from "../components/CarViewer";
+import CarCustomizer from "../components/CarCustomizer";
 
 import "./CarDetails.css";
 
@@ -89,6 +91,8 @@ function CarDetails() {
             <strong>
               {formatPrice(car.price)}
             </strong>
+            <a href="#customize-car" className="vehicle-collection-button customize-entry">Customize your Car ↗</a>
+            <AddToCartButton car={car} />
           </div>
         </div>
 
@@ -145,6 +149,8 @@ function CarDetails() {
             {car.brand.toUpperCase()} / {car.year}
           </span>
         </div>}
+
+        <CarCustomizer key={car.id} car={car} />
 
         {/* PERFORMANCE */}
         <section className="vehicle-performance">

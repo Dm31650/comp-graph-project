@@ -25,11 +25,11 @@ function ResponsiveCamera() {
   return null;
 }
 
-export default function CarViewer({ modelUrl = "/models/porsche/scene.gltf", modelName = "Porsche", modelRotation = 0 }) {
+export default function CarViewer({ modelUrl = "/models/porsche/scene.gltf", modelName = "Porsche", modelRotation = 0, customization, onPartSelect }) {
   const [progress, setProgress] = useState(0);
   const [floorY, setFloorY] = useState(null);
   const [run, setRun] = useState(0);
-  const [skip, setSkip] = useState(false);
+  const [skip, setSkip] = useState(Boolean(customization));
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -49,7 +49,7 @@ export default function CarViewer({ modelUrl = "/models/porsche/scene.gltf", mod
           <directionalLight position={[-5, 4, -5]} intensity={2} />
           <pointLight position={[-4, 3, 3]} intensity={30} color="#ff6534" />
           <Suspense fallback={null}>
-            <CarModel modelUrl={modelUrl} modelRotation={modelRotation} run={run} skip={skip} reducedMotion={reducedMotion} onProgress={setProgress} onReady={setFloorY} />
+            <CarModel modelUrl={modelUrl} modelRotation={modelRotation} run={run} skip={skip} reducedMotion={reducedMotion} onProgress={setProgress} onReady={setFloorY} customization={customization} onPartSelect={onPartSelect} />
             {/* Local studio reflections: no external HDR download required. */}
             <Environment resolution={128}>
               <Lightformer position={[0, 5, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[10, 4, 1]} intensity={3} />
@@ -58,10 +58,10 @@ export default function CarViewer({ modelUrl = "/models/porsche/scene.gltf", mod
             </Environment>
             {ready && <ContactShadows position={[0, floorY - 0.025, 0]} opacity={0.5} scale={16} blur={2.5} far={5} resolution={256} />}
           </Suspense>
-          <OrbitControls makeDefault target={[0, 0.2, 0]} enabled={complete} enablePan={false} enableZoom={false} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 2.05} />
+          <OrbitControls makeDefault target={[0, 0.2, 0]} enabled={complete} enablePan={false} enableZoom={Boolean(customization)} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 2.05} />
         </Canvas>
       </ViewerBoundary>
-      <div className="assembly-panel">
+      {!customization && <div className="assembly-panel">
         <div className="assembly-caption" role="status">{!ready ? `PREPARING ${modelName.toUpperCase()}` : complete ? "BUILT TO THRILL / DRAG TO EXPLORE" : "PRECISION IN EVERY PIECE"}</div>
         <div className="assembly-track" role="progressbar" aria-label="Car assembly" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><span style={{ transform: `scaleX(${progress / 100})` }} /></div>
         <div className="assembly-actions">
@@ -71,7 +71,7 @@ export default function CarViewer({ modelUrl = "/models/porsche/scene.gltf", mod
             else setSkip(true);
           }}>{complete ? "Replay assembly ↻" : "Skip intro →"}</button>}
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

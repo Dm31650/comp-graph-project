@@ -1,0 +1,14 @@
+.site-experience { position:relative; isolation:isolate; min-height:100vh; background:#08090b; }
+.interactive-background { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; background:radial-gradient(ellipse at 88% 32%,#ff653414,transparent 52%),radial-gradient(ellipse at 15% 80%,#39485922,transparent 60%),#08090b; }
+.interactive-background canvas { width:100%; height:100%; display:block; opacity:.9; }
+.interactive-background::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,#08090b99,transparent 25%,#08090b55 52%,transparent 80%,#08090b66),linear-gradient(0deg,#08090b88,transparent 40%,#08090b55); }
+.site-content { position:relative; z-index:1; }
+.site-experience .site-content > :is(.website,.details-page,.about-page,.shop-page) { background:transparent; }
+.site-experience .hero { background:radial-gradient(ellipse at 55% 65%,#22232980,#08090b22 70%); }
+.site-experience .collection-section { background:#08090b40; }
+.background-motion-control { position:fixed; bottom:18px; left:18px; z-index:30; display:flex; align-items:center; gap:9px; color:#c6c7cc; background:#0b0c0ee8; border:1px solid #ffffff25; padding:10px 13px; border-radius:3px; font:inherit; font-size:10px; letter-spacing:.3px; cursor:pointer; backdrop-filter:blur(12px); }
+.background-motion-control span { color:#ff956e; }
+.background-motion-control:hover { border-color:#ff6534; color:white; }
+.background-motion-control:focus-visible { outline:2px solid #ff956e; outline-offset:4px; }
+@media(max-width:768px) { .background-motion-control { bottom:10px; left:10px; padding:8px 10px; font-size:9px; } .interactive-background canvas { opacity:.6; } }
+@media(prefers-reduced-motion:reduce) { .background-motion-control { display:none; } }

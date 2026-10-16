@@ -8,8 +8,13 @@ import CarViewer from "./components/CarViewer";
 import CarCollection from "./components/CarCollection";
 import CarDetails from "./pages/CarDetails";
 import About from "./pages/About";
+import Cart from "./pages/Cart";
+import Contact from "./pages/Contact";
+import { CartProvider } from "./cart/CartContext";
+import "./pages/Shop.css";
 
 import "./App.css";
+import InteractiveBackground from "./components/InteractiveBackground";
 
 function Home() {
   const pageRef = useRef(null);
@@ -125,9 +130,11 @@ function Home() {
 /* ALL WEBSITE ROUTES */
 function App() {
   return (
-    <Routes>
+    <CartProvider><div className="site-experience"><InteractiveBackground /><div className="site-content"><Routes>
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
+      <Route path="/cart" element={<Cart />} />
+      <Route path="/contact" element={<Contact />} />
 
       <Route
         path="/cars/:id"
@@ -156,7 +163,7 @@ function App() {
           </main>
         }
       />
-    </Routes>
+    </Routes></div></div></CartProvider>
   );
 }
 

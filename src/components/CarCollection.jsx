@@ -1,3 +1,4 @@
+import AddToCartButton from "./AddToCartButton";
 
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
@@ -39,7 +40,7 @@ function CarCard({ car }) {
               className="placeholder-car"
               aria-hidden="true"
             >
-              🚘
+              ðŸš˜
             </span>
 
             <span className="placeholder-model">
@@ -67,7 +68,7 @@ function CarCard({ car }) {
           <span>{car.horsepower} HP</span>
 
           <span>
-            0–100: {car.acceleration}
+            0â€“100: {car.acceleration}
           </span>
 
           <span>{car.fuel}</span>
@@ -88,10 +89,11 @@ function CarCard({ car }) {
             className="details-button"
             to={`/cars/${car.id}`}
           >
-            DETAILS ↗
+            DETAILS â†—
           </Link>
         </div>
       </div>
+      <AddToCartButton car={car} />
     </article>
   );
 }

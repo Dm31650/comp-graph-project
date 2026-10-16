@@ -18,3 +18,11 @@ If you are developing a production application, we recommend using TypeScript wi
 =======
 # comp-graph-project
 >>>>>>> origin/main
+
+## Cart and contact
+
+- `/cart` supports original cars and separate custom-design configurations, quantities (1–10 per configuration), removal, totals, and browser-local persistence.
+- Demo checkout clears the cart after confirmation and offers a downloadable text receipt. It does not send orders, process payments, or reserve vehicles.
+- `/contact` validates name, email, and message. Without a configured inbox it downloads the inquiry and explicitly reports that nothing was sent.
+- To connect an inbox, copy `.env.example` to `.env.local`, set `VITE_CONTACT_EMAIL` to your real address, and restart Vite (or rebuild for deployment). The form then opens a prepared email in the visitor's email app; the visitor must send it there. For server-side delivery, connect a backend or form service.
+- Run regression checks with `node --test tests/*.test.mjs`, then `npm run build` and `npm run lint`.
