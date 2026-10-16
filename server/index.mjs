@@ -1,45 +1,51 @@
 import { cleanCart, cartReducer, normalizeDesign } from '../src/cart/cart.js';
 import { cars } from '../src/data/cars.js';
 import { createServer } from 'node:http';
-import { DatabaseSync } from 'node:sqlite';
 import { randomBytes, scrypt, timingSafeEqual, createHash } from 'node:crypto';
 import { promisify } from 'node:util';
-import { mkdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { query, one, transaction, migrate } from './db.mjs';
 
-const directory = fileURLToPath(new URL('./data/', import.meta.url));
-mkdirSync(directory, { recursive: true });
-const db = new DatabaseSync(directory + '/accounts.sqlite');
-db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
- CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, name TEXT NOT NULL, hash TEXT NOT NULL, salt TEXT NOT NULL, color TEXT NOT NULL DEFAULT '#ff6534');
- CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), expires INTEGER NOT NULL);`);
-db.exec(`CREATE TABLE IF NOT EXISTS carts (user_id TEXT PRIMARY KEY REFERENCES users(id), items TEXT NOT NULL);
- CREATE TABLE IF NOT EXISTS designs (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), car_id INTEGER NOT NULL, name TEXT NOT NULL, configuration TEXT NOT NULL, updated_at TEXT NOT NULL);
- CREATE INDEX IF NOT EXISTS designs_owner ON designs(user_id);`);
-if (!db.prepare('PRAGMA table_info(users)').all().some(column => column.name === 'avatar')) db.exec('ALTER TABLE users ADD COLUMN avatar TEXT');
+await migrate();
+
 const derive = promisify(scrypt);
 const digest = token => createHash('sha256').update(token).digest('hex');
 const publicUser = u => u ? { id: u.id, name: u.name, email: u.email, color: u.color, avatar: u.avatar || null } : null;
 const secure = process.env.NODE_ENV === 'production';
 const origin = process.env.APP_ORIGIN || 'http://localhost:5173';
+function allowedOrigin(req) {
+ const requestOrigin = req.headers.origin;
+ if (!requestOrigin) return false;
+ if (requestOrigin === origin) return true;
+ try {
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+  return Boolean(host) && new URL(requestOrigin).host === host;
+ } catch { return false; }
+}
 const attempts = new Map();
-setInterval(() => { const now = Date.now(); for (const [key, value] of attempts) if (value.until < now) attempts.delete(key); db.prepare('DELETE FROM sessions WHERE expires < ?').run(now); }, 60000).unref();
+setInterval(() => {
+ const now = Date.now();
+ for (const [key, value] of attempts) if (value.until < now) attempts.delete(key);
+ query('DELETE FROM sessions WHERE expires < $1', [now]).catch(error => console.error('Session cleanup failed:', error.message));
+}, 60000).unref();
 const cookie = (token, age = 604800) => `showroom_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${age}${secure ? '; Secure' : ''}`;
 const fail = (status, message) => Object.assign(new Error(message), { status });
 async function body(req) {
  let text = ''; for await (const chunk of req) { text += chunk; if (Buffer.byteLength(text) > 262144) throw fail(413, 'Request too large.'); }
  try { const value = JSON.parse(text); if (!value || typeof value !== 'object' || Array.isArray(value)) throw 0; return value; } catch { throw fail(400, 'Invalid request.'); }
 }
+const listDesigns = async userId => (await query('SELECT id, car_id AS "carId", name, configuration, updated_at AS "updatedAt" FROM designs WHERE user_id=$1 ORDER BY updated_at DESC', [userId]))
+ .map(({ configuration, updatedAt, ...row }) => ({ ...row, updatedAt: new Date(updatedAt).toISOString(), design: normalizeDesign(configuration) }));
+
 createServer(async (req, res) => {
  const send = (code, data) => { res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(JSON.stringify(data)); };
  try {
   const path = new URL(req.url, origin).pathname;
-  if (req.method !== 'GET' && req.headers.origin !== origin) throw fail(403, 'Request origin not allowed.');
+  if (req.method !== 'GET' && !allowedOrigin(req)) throw fail(403, 'Request origin not allowed.');
   const token = /(?:^|;\s*)showroom_session=([a-f0-9]{64})(?:;|$)/.exec(req.headers.cookie || '')?.[1];
-  const user = token ? db.prepare('SELECT users.* FROM users JOIN sessions ON users.id=sessions.user_id WHERE token=? AND expires>?').get(digest(token), Date.now()) : null;
-  if (path === '/api/health' && req.method === 'GET') { db.prepare('SELECT 1').get(); return send(200, { service: 'showroom-accounts', database: 'ready' }); }
+  const user = token ? await one('SELECT users.* FROM users JOIN sessions ON users.id=sessions.user_id WHERE token=$1 AND expires>$2', [digest(token), Date.now()]) : null;
+  if (path === '/api/health' && req.method === 'GET') { await one('SELECT 1'); return send(200, { service: 'showroom-accounts', database: 'ready' }); }
   if (path === '/api/me' && req.method === 'GET') return send(200, { user: publicUser(user) });
-  if (path === '/api/logout' && req.method === 'POST') { if (token) db.prepare('DELETE FROM sessions WHERE token=?').run(digest(token)); res.setHeader('Set-Cookie', cookie('', 0)); return send(200, { user: null }); }
+  if (path === '/api/logout' && req.method === 'POST') { if (token) await query('DELETE FROM sessions WHERE token=$1', [digest(token)]); res.setHeader('Set-Cookie', cookie('', 0)); return send(200, { user: null }); }
   if (['/api/register', '/api/login'].includes(path) && req.method === 'POST') {
    const key = req.socket.remoteAddress;
    const rate = attempts.get(key) || { count: 0, until: Date.now() + 900000 }; attempts.set(key, rate);
@@ -53,47 +59,52 @@ createServer(async (req, res) => {
     const name = typeof input.name === 'string' ? input.name.trim() : '';
     if (name.length < 2 || name.length > 60) throw fail(400, 'Your name must be 2–60 characters.');
     const salt = randomBytes(16).toString('hex'); const hash = (await derive(password, salt, 64)).toString('hex');
-    const id = randomBytes(16).toString('hex');
-    try { db.prepare('INSERT INTO users (id,email,name,hash,salt) VALUES (?,?,?,?,?)').run(id,email,name,hash,salt); } catch (error) { if (String(error).includes('UNIQUE')) throw fail(409, 'Unable to register this email. Try signing in.'); throw error; }
-    account = db.prepare('SELECT * FROM users WHERE id=?').get(id);
+    account = await one('INSERT INTO users (id,email,name,hash,salt) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (email) DO NOTHING RETURNING *', [randomBytes(16).toString('hex'), email, name, hash, salt]);
+    if (!account) throw fail(409, 'Unable to register this email. Try signing in.');
    } else {
-    account = db.prepare('SELECT * FROM users WHERE email=?').get(email);
+    account = await one('SELECT * FROM users WHERE email=$1', [email]);
     const hash = await derive(password, account?.salt || 'invalid-account-salt', 64);
     if (!account || !timingSafeEqual(hash, Buffer.from(account.hash, 'hex'))) throw fail(401, 'Email or password is incorrect.');
    }
-   if (token) db.prepare('DELETE FROM sessions WHERE token=?').run(digest(token));
+   if (token) await query('DELETE FROM sessions WHERE token=$1', [digest(token)]);
    const session = randomBytes(32).toString('hex');
-   db.prepare('INSERT INTO sessions VALUES (?,?,?)').run(digest(session), account.id, Date.now() + 604800000);
+   await query('INSERT INTO sessions (token,user_id,expires) VALUES ($1,$2,$3)', [digest(session), account.id, Date.now() + 604800000]);
    res.setHeader('Set-Cookie', cookie(session)); return send(200, { user: publicUser(account) });
   }
   if (path === '/api/cart') {
    if (!user) throw fail(401, 'Please sign in first.');
-   let items = cleanCart(JSON.parse(db.prepare('SELECT items FROM carts WHERE user_id=?').get(user.id)?.items || '[]'));
    if (req.method === 'POST') {
     const action = await body(req);
     if (!['add','remove','quantity','clear','import'].includes(action.type)) throw fail(400, 'Invalid cart action.');
-    // Re-read after the request body awaits so concurrent requests cannot overwrite each other.
-    items = cleanCart(JSON.parse(db.prepare('SELECT items FROM carts WHERE user_id=?').get(user.id)?.items || '[]'));
-    items = action.type === 'import' ? cleanCart([...items, ...cleanCart(action.items)]) : cartReducer(items, action);
-    if (items.length > 100) throw fail(400, 'Your cart can hold up to 100 configurations.');
-    db.prepare('INSERT INTO carts VALUES (?,?) ON CONFLICT(user_id) DO UPDATE SET items=excluded.items').run(user.id, JSON.stringify(items));
-   } else if (req.method !== 'GET') throw fail(405, 'Method not allowed.');
-   return send(200, { items });
+    const items = await transaction(async tx => {
+     await tx('INSERT INTO carts (user_id) VALUES ($1) ON CONFLICT DO NOTHING', [user.id]);
+     const [row] = await tx('SELECT items FROM carts WHERE user_id=$1 FOR UPDATE', [user.id]);
+     const current = cleanCart(row?.items || []);
+     const next = action.type === 'import' ? cleanCart([...current, ...cleanCart(action.items)]) : cartReducer(current, action);
+     if (next.length > 100) throw fail(400, 'Your cart can hold up to 100 configurations.');
+     await tx('UPDATE carts SET items=$2::jsonb WHERE user_id=$1', [user.id, JSON.stringify(next)]);
+     return next;
+    });
+    return send(200, { items });
+   }
+   if (req.method !== 'GET') throw fail(405, 'Method not allowed.');
+   return send(200, { items: cleanCart((await one('SELECT items FROM carts WHERE user_id=$1', [user.id]))?.items || []) });
   }
   if (path === '/api/designs') {
    if (!user) throw fail(401, 'Please sign in first.');
    if (req.method === 'POST') {
     const input = await body(req);
     if (!cars.some(car => car.id === input.carId) || !input.design || typeof input.design !== 'object' || typeof input.name !== 'string' || input.name.trim().length < 1 || input.name.length > 80) throw fail(400, 'Choose a vehicle and a design name of 1–80 characters.');
-    if (db.prepare('SELECT COUNT(*) AS count FROM designs WHERE user_id=?').get(user.id).count >= 100) throw fail(400, 'You can save up to 100 designs.');
-    db.prepare('INSERT INTO designs VALUES (?,?,?,?,?,?)').run(randomBytes(16).toString('hex'), user.id, input.carId, input.name.trim(), JSON.stringify(normalizeDesign(input.design)), new Date().toISOString());
+    const inserted = await one(`INSERT INTO designs (id,user_id,car_id,name,configuration)
+     SELECT $1,$2,$3,$4,$5::jsonb WHERE (SELECT COUNT(*) FROM designs WHERE user_id=$2) < 100 RETURNING id`,
+     [randomBytes(16).toString('hex'), user.id, input.carId, input.name.trim(), JSON.stringify(normalizeDesign(input.design))]);
+    if (!inserted) throw fail(400, 'You can save up to 100 designs.');
    } else if (req.method === 'DELETE') {
     const input = await body(req);
     if (typeof input.id !== 'string') throw fail(400, 'Choose a saved design.');
-    db.prepare('DELETE FROM designs WHERE id=? AND user_id=?').run(input.id, user.id);
+    await query('DELETE FROM designs WHERE id=$1 AND user_id=$2', [input.id, user.id]);
    } else if (req.method !== 'GET') throw fail(405, 'Method not allowed.');
-   const designs = db.prepare('SELECT id, car_id AS carId, name, configuration, updated_at AS updatedAt FROM designs WHERE user_id=? ORDER BY updated_at DESC').all(user.id).map(({configuration,...row}) => ({...row, design: normalizeDesign(JSON.parse(configuration))}));
-   return send(200, { designs });
+   return send(200, { designs: await listDesigns(user.id) });
   }
   if (path === '/api/profile' && req.method === 'PATCH') {
    if (!user) throw fail(401, 'Please sign in first.');
@@ -104,9 +115,9 @@ createServer(async (req, res) => {
     const bytes = Buffer.from(avatar.split(',')[1], 'base64');
     if (bytes.length < 4 || bytes[0] !== 255 || bytes[1] !== 216 || bytes.at(-2) !== 255 || bytes.at(-1) !== 217) throw fail(400, 'Invalid profile photo.');
    }
-   db.prepare('UPDATE users SET name=?, color=?, avatar=? WHERE id=?').run(name.trim(),color,avatar === undefined ? user.avatar : avatar,user.id);
-   return send(200, { user: publicUser(db.prepare('SELECT * FROM users WHERE id=?').get(user.id)) });
+   const updated = await one('UPDATE users SET name=$1, color=$2, avatar=$3 WHERE id=$4 RETURNING *', [name.trim(), color, avatar === undefined ? user.avatar : avatar, user.id]);
+   return send(200, { user: publicUser(updated) });
   }
   send(404, { error: 'Not found.' });
  } catch (error) { if (!error.status) console.error(error); send(error.status || 500, { error: error.status ? error.message : 'Something went wrong. Please try again.' }); }
-}).listen(Number(process.env.API_PORT || 3001), '127.0.0.1', () => console.log('Account server ready on port ' + (process.env.API_PORT || 3001)));
+}).listen(Number(process.env.API_PORT || 3001), '127.0.0.1', () => console.log('Account server ready on port ' + (process.env.API_PORT || 3001) + ' (Neon Postgres)'));
