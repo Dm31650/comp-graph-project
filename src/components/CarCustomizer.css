@@ -38,3 +38,11 @@
 .customizer-options { margin-top: 12px; }
 .customizer-color select:disabled { opacity: .45; }
 @media (max-width: 480px) { .customizer-3d-viewer { height: 340px; } }
+/* Separate the main design actions, including when they wrap on phones. */
+.customizer-primary-actions { display:flex; flex-wrap:wrap; align-items:flex-start; gap:16px; margin:24px 0; }
+.customizer-primary-actions > .add-cart-control { margin:0; }
+.customizer-primary-actions .shop-button, .customizer-primary-actions > .vehicle-collection-button { margin:0; padding:16px 22px; }
+@media(max-width:600px) {
+ .customizer-primary-actions { flex-direction:column; align-items:stretch; }
+ .customizer-primary-actions .shop-button, .customizer-primary-actions > .vehicle-collection-button { width:100%; box-sizing:border-box; text-align:center; justify-content:center; }
+}
