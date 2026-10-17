@@ -6,15 +6,57 @@ import { cars } from "../data/cars";
 import "./SiteChrome.css";
 
 export function SiteHeader() {
-  const { pathname, key: locationKey } = useLocation();
+  const { pathname, hash, key: locationKey } = useLocation();
   const [menuOpen,setMenuOpen]=useState(false);
   const menuButton=useRef(null);
   useEffect(()=>{setMenuOpen(false);},[locationKey]);
-  useEffect(()=>{if(!menuOpen)return;const key=e=>{if(e.key==="Escape"){setMenuOpen(false);menuButton.current?.focus();}};const outside=e=>{if(!headerRef.current?.contains(e.target))setMenuOpen(false);};document.addEventListener("keydown",key);document.addEventListener("pointerdown",outside);return()=>{document.removeEventListener("keydown",key);document.removeEventListener("pointerdown",outside);};},[menuOpen]);
   const { count } = useCart();
   const { user } = useAuth();
   const headerRef = useRef(null);
   const spacerRef = useRef(null);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1000px)');
+    const closeOnDesktop = () => { if (!media.matches) setMenuOpen(false); };
+    media.addEventListener('change', closeOnDesktop);
+    return () => media.removeEventListener('change', closeOnDesktop);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const bodyOverflow = document.body.style.overflow;
+    const htmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    // Keep the rest of the page out of keyboard and screen-reader navigation.
+    const blocked = [];
+    let branch = headerRef.current;
+    while (branch?.parentElement) {
+      for (const sibling of branch.parentElement.children) {
+        if (sibling !== branch && sibling instanceof HTMLElement) {
+          blocked.push([sibling, sibling.inert]); sibling.inert = true;
+        }
+      }
+      if (branch.parentElement === document.body) break;
+      branch = branch.parentElement;
+    }
+    menuButton.current?.focus();
+    const keydown = event => {
+      if (event.key === 'Escape') { setMenuOpen(false); menuButton.current?.focus(); }
+      if (event.key !== 'Tab') return;
+      const links = [...headerRef.current.querySelectorAll('a[href], button')].filter(el => el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
+      const first = links[0], last = links.at(-1);
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => {
+      document.body.style.overflow = bodyOverflow;
+      document.documentElement.style.overflow = htmlOverflow;
+      blocked.forEach(([element, previous]) => { element.inert = previous; });
+      document.removeEventListener('keydown', keydown);
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     const header = headerRef.current;
@@ -49,15 +91,17 @@ export function SiteHeader() {
     };
   }, [pathname, menuOpen]);
 
-  return <div ref={spacerRef} className="site-header-space"><header ref={headerRef} className="site-header" onFocusCapture={() => headerRef.current?.classList.remove("site-header--hidden")}>
+  return <div ref={spacerRef} className="site-header-space"><header ref={headerRef} className={`site-header${menuOpen ? " menu-is-open" : ""}`} onFocusCapture={() => headerRef.current?.classList.remove("site-header--hidden")}>
     <Link to="/" className="logo" aria-label="Limitless-Deal Hub home">Limitless-Deal Hub<span>.</span></Link>
     <button ref={menuButton} type="button" className="mobile-menu-button" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={()=>setMenuOpen(!menuOpen)}><span/><span/><span/></button>
-    <nav id="main-navigation" className={menuOpen ? "navigation-open" : ""} aria-label="Main navigation" onClick={()=>setMenuOpen(false)}>
-      <Link to="/" aria-current={pathname === "/" ? "page" : undefined}>Home</Link>
-      <Link to="/#collection" onClick={() => document.getElementById("collection")?.scrollIntoView()}>Collection</Link>
+    <nav id="main-navigation" className={menuOpen ? "navigation-open" : ""} aria-label="Main navigation" onClick={event=>{if(event.target.closest("a")){setMenuOpen(false);menuButton.current?.focus();}}}>
+      <div className="menu-eyebrow" aria-hidden="true">LIMITLESS / EXPLORE</div>
+      <Link to="/" aria-current={pathname === "/" && !hash ? "page" : undefined}>Home</Link>
+      <Link to="/#collection" aria-current={pathname === "/" && hash === "#collection" ? "page" : undefined} onClick={() => document.getElementById("collection")?.scrollIntoView()}>Collection</Link>
       <Link to="/experience" aria-current={pathname === "/experience" ? "page" : undefined}>Experience</Link>
       <Link to="/about" aria-current={pathname === "/about" ? "page" : undefined}>About Us</Link>
       <Link to="/contact" aria-current={pathname === "/contact" ? "page" : undefined}>Contact Us</Link>
+      <div className="menu-signature" aria-hidden="true"><span>DRIVEN BY CURIOSITY.</span><span>BUILT TO EXPLORE ↗</span></div>
     </nav>
 
 
