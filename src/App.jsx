@@ -1,3 +1,4 @@
+import Icon from './components/Icon';
 import Experience from './pages/Experience';
 import Account from "./pages/Account";
 import { AuthProvider } from "./auth/AuthContext";
@@ -101,7 +102,7 @@ function Home() {
             href="#collection"
             className="explore-button"
           >
-            EXPLORE COLLECTION <span>↗</span>
+            EXPLORE COLLECTION <span><Icon name="arrow-up-right"/></span>
           </a>
 
           <div className="car-info">
@@ -165,7 +166,7 @@ function App() {
             <h1>404 | Page Not Found</h1>
 
             <Link to="/" className="nav-button">
-              Return Home ↗
+              Return Home <Icon name="arrow-up-right"/>
             </Link>
           </main>
         }

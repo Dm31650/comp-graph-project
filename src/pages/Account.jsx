@@ -1,3 +1,4 @@
+import Icon from '../components/Icon';
 import ProfileDashboard from './ProfileDashboard';
 import SavedDesigns from '../components/SavedDesigns';
 import { useCart } from '../cart/CartContext';
@@ -36,8 +37,8 @@ export default function Account({ mode = 'login' }) {
  {(error || connectionError) && <p className="account-error" role="alert">{error || connectionError}</p>}
  {connectionError && <button type="button" disabled={busy} onClick={() => { setError(""); refresh(); }}>Reconnect to account service</button>}
  {message && <p role="status">{message}</p>}
- <button className="account-submit" disabled={busy}>{busy ? 'Please wait…' : profile ? 'Save profile ↗' : register ? 'Create account ↗' : 'Sign in ↗'}</button>
+ <button className="account-submit" disabled={busy}>{busy ? 'Please wait…' : <>{profile ? 'Save profile' : register ? 'Create account' : 'Sign in'} <Icon name="arrow-up-right"/></>}</button>
  </form>
- {profile ? <><Link to="/#collection" className="account-link">Customize a car ↗</Link><button className="account-signout" disabled={busy || cartPending} onClick={async () => { setBusy(true); try { await act('logout','POST'); } catch(error) { setError(error.message); } finally { setBusy(false); } }}>Sign out</button></> : <p className="account-switch">{register ? 'Already a member?' : 'New here?'} <Link to={register ? '/sign-in' : '/register'}>{register ? 'Sign in' : 'Create an account'}</Link></p>}
+ {profile ? <><Link to="/#collection" className="account-link">Customize a car <Icon name="arrow-up-right"/></Link><button className="account-signout" disabled={busy || cartPending} onClick={async () => { setBusy(true); try { await act('logout','POST'); } catch(error) { setError(error.message); } finally { setBusy(false); } }}>Sign out</button></> : <p className="account-switch">{register ? 'Already a member?' : 'New here?'} <Link to={register ? '/sign-in' : '/register'}>{register ? 'Sign in' : 'Create an account'}</Link></p>}
  </div></section>{profile && <SavedDesigns/>}<SiteFooter/></main>;
 }

@@ -1,3 +1,4 @@
+import Icon from '../components/Icon';
 import { SiteHeader, SiteFooter } from "../components/SiteChrome";
 import { useEffect } from "react";
 import { Link } from "react-router";
@@ -24,7 +25,7 @@ export default function About() {
       <section className="story-hero" aria-labelledby="story-title">
         <div className="story-topline"><p className="eyebrow">OUR STORY / LIMITLESS BY DESIGN</p><span>EST. AS A CREATIVE EXPERIMENT</span></div>
         <h1 id="story-title">MORE THAN<br />A <em>PRETTY</em><br /><span>MACHINE.</span></h1>
-        <div className="story-hero-bottom"><span className="story-arrow" aria-hidden="true">↘</span><p>For the ones who see more than four wheels.<br />We bring automotive passion into a new dimension.</p><a href="#our-story">MEET LIMITLESS <span aria-hidden="true">↓</span></a></div>
+        <div className="story-hero-bottom"><span className="story-arrow" aria-hidden="true"><Icon name="arrow-down-right"/></span><p>For the ones who see more than four wheels.<br />We bring automotive passion into a new dimension.</p><a href="#our-story">MEET LIMITLESS <span aria-hidden="true"><Icon name="arrow-down"/></span></a></div>
         <div className="story-speedlines" aria-hidden="true"><i /><i /><i /></div>
       </section>
 
@@ -50,7 +51,7 @@ export default function About() {
         <div className="story-project-note"><span>THE PROJECT</span><p>This is an educational digital showroom, not a live dealership. Prices are demonstrations. Third-party 3D models are credited on each vehicle page, where we also note differences in model year and trim.</p></div>
       </section>
 
-      <section className="story-cta"><p className="eyebrow">YOUR CURIOSITY. OUR COLLECTION.</p><h2>WHAT MOVES <em>YOU?</em></h2><Link to="/#collection">STEP INSIDE THE GARAGE <span aria-hidden="true">↗</span></Link></section>
+      <section className="story-cta"><p className="eyebrow">YOUR CURIOSITY. OUR COLLECTION.</p><h2>WHAT MOVES <em>YOU?</em></h2><Link to="/#collection">STEP INSIDE THE GARAGE <span aria-hidden="true"><Icon name="arrow-up-right"/></span></Link></section>
       <SiteFooter />
     </main>
   );

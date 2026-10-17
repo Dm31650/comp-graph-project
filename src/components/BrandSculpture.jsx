@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useEffect, useRef, useState } from "react";
 import "./BrandSculpture.css";
 
@@ -43,7 +44,7 @@ export default function BrandSculpture() {
       <div className="brand-stage-bottom">
         <div><p>BUILT TO STAND OUT.</p><span>Perspective changes everything.</span></div>
         <div className="brand-controls">
-          <button type="button" onClick={() => { setReplay((n) => n + 1); setPaused(false); resetTilt(); }}>Replay reveal ↻</button>
+          <button type="button" onClick={() => { setReplay((n) => n + 1); setPaused(false); resetTilt(); }}>Replay reveal <Icon name="replay"/></button>
           <button type="button" aria-pressed={paused} onClick={() => { setPaused(!paused); resetTilt(); }}>{paused ? "Resume motion" : "Pause motion"}</button>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Environment, Lightformer, ContactShadows } from "@react-three/drei";
 import { Component, Suspense, useEffect, useState } from "react";
@@ -76,7 +77,7 @@ export default function CarViewer({ modelUrl = "/models/porsche/scene.gltf", mod
           {ready && !reducedMotion && <button type="button" onClick={() => {
             if (complete) { setSkip(false); setProgress(0); setRun((value) => value + 1); }
             else setSkip(true);
-          }}>{complete ? "Replay assembly ↻" : "Skip intro →"}</button>}
+          }}>{complete ? <>Replay assembly <Icon name="replay"/></> : <>Skip intro <Icon name="arrow-right"/></>}</button>}
         </div>
       </div>}
     </div>

@@ -1,3 +1,4 @@
+import Icon from '../components/Icon';
 import AddToCartButton from "../components/AddToCartButton";
 import { SiteHeader, SiteFooter } from "../components/SiteChrome";
 
@@ -53,7 +54,7 @@ function CarDetails() {
           </p>
 
           <Link to="/#collection">
-            ← BACK TO COLLECTION
+            <Icon name="arrow-left"/> BACK TO COLLECTION
           </Link>
         </div>
       </main>
@@ -91,7 +92,7 @@ function CarDetails() {
             <strong>
               {formatPrice(car.price)}
             </strong>
-            <a href="#customize-car" className="vehicle-collection-button customize-entry">Customize your Car ↗</a>
+            <a href="#customize-car" className="vehicle-collection-button customize-entry">Customize your Car <Icon name="arrow-up-right"/></a>
             <AddToCartButton car={car} />
           </div>
         </div>
@@ -138,7 +139,7 @@ function CarDetails() {
             />
           ) : (
             <div className="vehicle-image-placeholder">
-              <span aria-hidden="true">🚘</span>
+              <span aria-hidden="true"><Icon name="car"/></span>
               <h2>
                 {car.brand} {car.name}
               </h2>
@@ -265,7 +266,7 @@ function CarDetails() {
             to="/#collection"
             className="vehicle-collection-button"
           >
-            EXPLORE MORE VEHICLES ↗
+            EXPLORE MORE VEHICLES <Icon name="arrow-up-right"/>
           </Link>
         </div>
       </div>

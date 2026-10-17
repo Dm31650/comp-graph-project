@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import "./InteractiveBackground.css";
@@ -121,5 +122,5 @@ export default function InteractiveBackground() {
     };
   }, []);
 
-  return <><div ref={host} className="interactive-background" aria-hidden="true"/><button className="background-motion-control" type="button" aria-pressed={paused} onClick={() => setPaused(value => !value)}><span aria-hidden="true">{paused ? "▶" : "Ⅱ"}</span> {paused ? "Resume background" : "Pause background"}</button></>;
+  return <><div ref={host} className="interactive-background" aria-hidden="true"/><button className="background-motion-control" type="button" aria-pressed={paused} onClick={() => setPaused(value => !value)}><span aria-hidden="true"><Icon name={paused ? "play" : "pause"}/></span> {paused ? "Resume background" : "Pause background"}</button></>;
 }

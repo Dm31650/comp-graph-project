@@ -1,3 +1,4 @@
+import Icon from '../components/Icon';
 import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../auth/AuthContext';
@@ -44,6 +45,6 @@ export default function ProfileDashboard() {
   <dl className="profile-facts"><div><dt>Username</dt><dd>{user.name}</dd></div><div><dt>Email address</dt><dd>{user.email}</dd></div><div><dt>Saved designs</dt><dd className="profile-count">{designCount ?? '—'}</dd></div></dl>
   {editing && <form className="profile-edit" onSubmit={async event=>{event.preventDefault();setBusy(true);setError('');try{await save({name});setEditing(false);setNotice('Username updated.');}catch(error){setError(error.message);}finally{setBusy(false);}}}><label>Username<input value={name} onChange={event=>setName(event.target.value)} minLength={2} maxLength={60} required autoComplete="nickname" disabled={busy}/></label><button disabled={busy}>Save changes</button><button type="button" disabled={busy} onClick={()=>setEditing(false)}>Cancel</button></form>}
   {error && <p className="profile-feedback account-error" role="alert">{error}</p>}{notice && <p className="profile-feedback" role="status">{notice}</p>}
-  <div className="profile-buttons"><button disabled={busy} onClick={()=>{setName(user.name);setEditing(true);}}>Edit username</button><Link to="/#collection">Create a design ↗</Link><button disabled={busy||cartPending} onClick={async()=>{setBusy(true);try{await act('logout','POST');}catch(error){setError(error.message);}finally{setBusy(false);}}}>Sign out</button></div>
+  <div className="profile-buttons"><button disabled={busy} onClick={()=>{setName(user.name);setEditing(true);}}>Edit username</button><Link to="/#collection">Create a design <Icon name="arrow-up-right"/></Link><button disabled={busy||cartPending} onClick={async()=>{setBusy(true);try{await act('logout','POST');}catch(error){setError(error.message);}finally{setBusy(false);}}}>Sign out</button></div>
  </div></section><SavedDesigns onCountChange={setDesignCount}/><SiteFooter/></main>;
 }
