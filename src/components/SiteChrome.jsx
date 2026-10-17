@@ -1,12 +1,16 @@
 import { useAuth } from "../auth/AuthContext";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "../cart/CartContext";
 import { Link, useLocation } from "react-router";
 import { cars } from "../data/cars";
 import "./SiteChrome.css";
 
 export function SiteHeader() {
-  const { pathname } = useLocation();
+  const { pathname, key: locationKey } = useLocation();
+  const [menuOpen,setMenuOpen]=useState(false);
+  const menuButton=useRef(null);
+  useEffect(()=>{setMenuOpen(false);},[locationKey]);
+  useEffect(()=>{if(!menuOpen)return;const key=e=>{if(e.key==="Escape"){setMenuOpen(false);menuButton.current?.focus();}};const outside=e=>{if(!headerRef.current?.contains(e.target))setMenuOpen(false);};document.addEventListener("keydown",key);document.addEventListener("pointerdown",outside);return()=>{document.removeEventListener("keydown",key);document.removeEventListener("pointerdown",outside);};},[menuOpen]);
   const { count } = useCart();
   const { user } = useAuth();
   const headerRef = useRef(null);
@@ -23,7 +27,7 @@ export function SiteHeader() {
       frame = 0;
       const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
       const current = Math.max(0, Math.min(window.scrollY, maxScroll));
-      if (current <= header.offsetHeight || header.contains(document.activeElement)) {
+      if (menuOpen || current <= header.offsetHeight || header.contains(document.activeElement)) {
         reveal();
         anchor = current;
         return;
@@ -43,13 +47,15 @@ export function SiteHeader() {
       observer.disconnect();
       cancelAnimationFrame(frame);
     };
-  }, [pathname]);
+  }, [pathname, menuOpen]);
 
   return <div ref={spacerRef} className="site-header-space"><header ref={headerRef} className="site-header" onFocusCapture={() => headerRef.current?.classList.remove("site-header--hidden")}>
     <Link to="/" className="logo" aria-label="Limitless-Deal Hub home">Limitless-Deal Hub<span>.</span></Link>
-    <nav aria-label="Main navigation">
+    <button ref={menuButton} type="button" className="mobile-menu-button" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={()=>setMenuOpen(!menuOpen)}><span/><span/><span/></button>
+    <nav id="main-navigation" className={menuOpen ? "navigation-open" : ""} aria-label="Main navigation" onClick={()=>setMenuOpen(false)}>
       <Link to="/" aria-current={pathname === "/" ? "page" : undefined}>Home</Link>
       <Link to="/#collection" onClick={() => document.getElementById("collection")?.scrollIntoView()}>Collection</Link>
+      <Link to="/experience" aria-current={pathname === "/experience" ? "page" : undefined}>Experience</Link>
       <Link to="/about" aria-current={pathname === "/about" ? "page" : undefined}>About Us</Link>
       <Link to="/contact" aria-current={pathname === "/contact" ? "page" : undefined}>Contact Us</Link>
     </nav>

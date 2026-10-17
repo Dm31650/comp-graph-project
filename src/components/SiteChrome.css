@@ -77,3 +77,21 @@
 .header-avatar{width:100%;height:100%;object-fit:cover;border-radius:50%}
 @media(max-width:1100px){.site-header-space .site-header{padding-left:4%;padding-right:4%;gap:18px}.site-header .logo{font-size:21px}.site-header nav{gap:18px}}
 @media(max-width:850px){.site-header-space .site-header{grid-template-columns:minmax(0,1fr) auto;gap:16px}.site-header nav{grid-column:1/-1;grid-row:2;width:100%;gap:clamp(12px,5vw,32px);order:initial}.site-header .header-actions{grid-column:2;grid-row:1}}
+.mobile-menu-button{display:none}
+@media(max-width:1000px){
+ .site-header-space .site-header{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);gap:10px;padding:18px 4%;min-height:80px}
+ .site-header .logo{font-size:clamp(12px,2.5vw,21px);letter-spacing:-.7px;max-width:100%}
+ .mobile-menu-button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:44px;height:44px;background:#151a22;color:#fff;border:1px solid #ffffff30;border-radius:8px;grid-column:2;grid-row:1;cursor:pointer}
+ .mobile-menu-button span{width:19px;height:2px;background:currentColor;transition:transform .15s}
+ .mobile-menu-button[aria-expanded=true] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+ .mobile-menu-button[aria-expanded=true] span:nth-child(2){opacity:0}
+ .mobile-menu-button[aria-expanded=true] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+ .site-header .header-actions{grid-column:3;grid-row:1;gap:8px;justify-self:end}
+ .site-header .header-icon{width:36px;height:36px}.site-header .header-icon svg{width:19px;height:19px}
+ .site-header nav{display:none;position:absolute;top:100%;left:4%;right:4%;width:auto;padding:14px;background:#10151dfc;border:1px solid #ffffff25;border-radius:0 0 12px 12px;box-shadow:0 20px 35px #0008;grid-column:initial;grid-row:initial}
+ .site-header nav.navigation-open{display:flex;flex-direction:column;gap:0}
+ .site-header nav a{padding:15px 18px;font-size:14px;border-bottom:1px solid #ffffff10}
+ .site-header nav a:last-child{border-bottom:0}
+ .mobile-menu-button:focus-visible{outline:2px solid #ff6534;outline-offset:3px}
+}
+@media(prefers-reduced-motion:reduce){.mobile-menu-button span{transition:none}}

@@ -1,3 +1,4 @@
+import { useFrame } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
 import { gsap } from "gsap";
@@ -5,7 +6,7 @@ import { applyCustomization } from "./carCustomization";
 import { createCarInstance } from "./carAssembly";
 
 
-function CarModel({ modelUrl = "/models/porsche/scene.gltf", modelRotation = 0, run = 0, skip = false, reducedMotion = false, onProgress, onReady, customization, onPartSelect }) {
+function CarModel({ modelUrl = "/models/porsche/scene.gltf", modelRotation = 0, run = 0, skip = false, reducedMotion = false, onProgress, onReady, customization, onPartSelect, driveSpeed = 0 }) {
   const { scene } = useGLTF(modelUrl);
   const customizable = Boolean(customization);
   // StrictMode can invoke this twice. Each run must own its root and materials.
@@ -14,6 +15,19 @@ function CarModel({ modelUrl = "/models/porsche/scene.gltf", modelRotation = 0, 
     [scene, modelUrl, customizable],
   );
 
+  const spinningWheels = useMemo(() => {
+    if (!prepared) return [];
+    const materials = new Set(prepared.entries.filter(entry => entry.wheels || customization?.targets?.wheels?.includes(entry.partId)).map(entry=>entry.material));
+    return assembly.pieces.filter(({mesh})=>{
+      const assigned=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+      const box=mesh.geometry.boundingBox;
+      return assigned.some(material=>materials.has(material)) && box && Math.max(box.max.x-box.min.x,box.max.y-box.min.y,box.max.z-box.min.z)<1.8;
+    });
+  }, [assembly, prepared, customization?.targets]);
+  useFrame((_, delta) => {
+    if (!driveSpeed) return;
+    spinningWheels.forEach(({mesh})=>{const box=mesh.geometry.boundingBox;const axis=box.max.x-box.min.x<box.max.z-box.min.z?'x':'z';mesh.rotation[axis]-=Math.min(delta,.05)*driveSpeed*.04;});
+  });
   useLayoutEffect(() => {
     if (prepared && customization) applyCustomization(prepared, customization, customization.targets || {});
   }, [prepared, customization]);
@@ -53,4 +67,4 @@ function CarModel({ modelUrl = "/models/porsche/scene.gltf", modelRotation = 0, 
 }
 
 useGLTF.preload("/models/porsche/scene.gltf");
-export default CarModel;
+export default CarModel;

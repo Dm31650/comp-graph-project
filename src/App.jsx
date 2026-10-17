@@ -1,3 +1,4 @@
+import Experience from './pages/Experience';
 import Account from "./pages/Account";
 import { AuthProvider } from "./auth/AuthContext";
 import { SiteHeader, SiteFooter, ExperienceBand, ShowroomFAQ } from "./components/SiteChrome";
@@ -137,6 +138,7 @@ function App() {
       <Route path="/sign-in" element={<Account key="login" />} />
       <Route path="/register" element={<Account key="register" mode="register" />} />
       <Route path="/profile" element={<Account key="profile" mode="profile" />} />
+      <Route path="/experience" element={<Experience/>} />
       <Route path="/about" element={<About />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/contact" element={<Contact />} />
