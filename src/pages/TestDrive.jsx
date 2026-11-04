@@ -1,3 +1,4 @@
+import DriveSky from './DriveSky';
 import { Component, Suspense, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Lightformer, Html, Instances, Instance } from '@react-three/drei';
@@ -114,6 +115,7 @@ function initialDesign(carId,location) {
 }
 export default function TestDrive(){
  const {id}=useParams();const location=useLocation();const carId=Number(id);const car=cars.find(c=>c.id===carId);
+ const [night,setNight]=useState(false);
  const [design]=useState(()=>initialDesign(carId,location));const [paused,setPaused]=useState(true);const [ready,setReady]=useState(false);const [view,setView]=useState('Chase');const [reset,setReset]=useState(0);const [hud,setHud]=useState(spawn);const [message,setMessage]=useState('');
  const root=useRef();const sim=useRef(spawn());const keys=useRef(new Set());const orbit=useRef({yaw:0,pitch:.2});const drag=useRef(null);
  useEffect(()=>{try{sessionStorage.setItem(`test-drive:${carId}`,JSON.stringify(design));}catch{}},[carId,design]);
@@ -132,14 +134,14 @@ export default function TestDrive(){
  const touch=(code,label)=><button aria-label={label} onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);keys.current.add(code);}} onPointerUp={()=>keys.current.delete(code)} onPointerCancel={()=>keys.current.delete(code)} onLostPointerCapture={()=>keys.current.delete(code)}>{label}</button>;
  return <main className="test-drive" ref={root} tabIndex={-1}>
   <DriveBoundary><Canvas camera={{position:[3,5,29],fov:60,near:.1,far:350}} dpr={[1,1.4]} gl={{antialias:true}} onPointerDown={e=>{if(view==='Free'){drag.current={x:e.clientX,y:e.clientY};e.target.setPointerCapture?.(e.pointerId);}}} onPointerMove={e=>{if(view==='Free'&&drag.current){orbit.current.yaw-=(e.clientX-drag.current.x)*.008;orbit.current.pitch=clamp(orbit.current.pitch+(e.clientY-drag.current.y)*.005,0,1.1);drag.current={x:e.clientX,y:e.clientY};}}} onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}}>
-   <color attach="background" args={['#a5becb']}/><fog attach="fog" args={['#a5becb',100,240]}/><hemisphereLight args={['#e7f2ff','#5e6856',2.2]}/><directionalLight position={[30,70,-40]} intensity={3}/>
+   <color attach="background" args={['#a5becb']}/><fog attach="fog" args={['#a5becb',100,240]}/><DriveSky night={night}/>
    <City sim={sim}/><Suspense fallback={<Html center><div className="drive-loading">Loading your customized car…</div></Html>}>
     <Environment resolution={64}><Lightformer position={[0,8,0]} rotation={[Math.PI/2,0,0]} scale={[15,8,1]} intensity={2}/></Environment>
     <DrivingCar carId={carId} design={design} sim={sim} keys={keys} paused={paused} view={view} orbit={orbit} reset={reset} ready={ready} onReady={setReady} onHud={setHud}/>
    </Suspense>
   </Canvas></DriveBoundary>
   <header className="drive-top"><Link to={`/cars/${carId}#customize-car`} state={{savedDesign:design}}><Icon name="arrow-left"/> Exit drive</Link><div><small>LIMITLESS / CITY DRIVE</small><strong>{car.brand} {car.name}</strong></div><button onClick={fullscreen}>Fullscreen</button></header>
-  <aside className="drive-cameras" aria-label="Camera views">{CAMERAS.map(v=><button key={v} aria-pressed={view===v} onClick={()=>{setView(v);root.current?.focus();}}>{v}</button>)}</aside>
+  <aside className="drive-cameras" aria-label="Camera views">{CAMERAS.map(v=><button key={v} aria-pressed={view===v} onClick={()=>{setView(v);root.current?.focus();}}>{v}</button>)}<div className="drive-time-toggle" role="group" aria-label="Time of day"><button aria-pressed={!night} onClick={()=>{setNight(false);root.current?.focus();}}>Day</button><button aria-pressed={night} onClick={()=>{setNight(true);root.current?.focus();}}>Night</button></div></aside>
   <div className="drive-dashboard"><div className="drive-speed"><strong>{Math.round(Math.abs(hud.speed)*3.6)}</strong><span>KM/H · {hud.speed<-.2?'REVERSE':'DRIVE'}</span><small>{(hud.distance/1000).toFixed(2)} km explored</small></div><svg className="drive-map" viewBox="-115 -115 230 230" role="img" aria-label="City map and your position"><rect x="-115" y="-115" width="230" height="230" fill="#111e28"/>{STREETS.map(s=><path key={s} d={`M${s} -108V108M-108 ${s}H108`} stroke="#657984" strokeWidth="10"/>)}<path d="M0 -6 4 5 0 3-4 5Z" fill="#ff6534" transform={`translate(${hud.x},${hud.z}) rotate(${-hud.yaw*180/Math.PI})`}/></svg></div>
   <footer className="drive-bottom"><span>W / S accelerate & reverse · A / D steer · Space brake · C camera · Esc pause</span><button onClick={()=>{setPaused(true);keys.current.clear();}}>Pause</button><button onClick={()=>{setReset(v=>v+1);keys.current.clear();root.current?.focus();}}>Reset car</button></footer>
   {view==='Free'&&<p className="drive-free-tip">Drag the scene to look around your car</p>}
