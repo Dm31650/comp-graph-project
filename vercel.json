@@ -43,6 +43,10 @@
     {
       "source": "/experience",
       "destination": "/index.html"
+    },
+    {
+      "source": "/test-drive/:id",
+      "destination": "/index.html"
     }
   ]
 }

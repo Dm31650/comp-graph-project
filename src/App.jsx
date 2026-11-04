@@ -1,3 +1,4 @@
+import TestDrive from './pages/TestDrive';
 import Icon from './components/Icon';
 import Experience from './pages/Experience';
 import Account from "./pages/Account";
@@ -5,7 +6,7 @@ import { AuthProvider } from "./auth/AuthContext";
 import { SiteHeader, SiteFooter, ExperienceBand, ShowroomFAQ } from "./components/SiteChrome";
 
 import { useEffect, useRef } from "react";
-import { Routes, Route, Link } from "react-router";
+import { Routes, Route, Link, useLocation } from "react-router";
 import { gsap } from "gsap";
 
 import CarViewer from "./components/CarViewer";
@@ -133,12 +134,15 @@ function Home() {
 
 /* ALL WEBSITE ROUTES */
 function App() {
+  const pathname = useLocation().pathname;
+  const driving = pathname.startsWith("/test-drive/");
   return (
-    <AuthProvider><CartProvider><div className="site-experience"><InteractiveBackground /><div className="site-content"><Routes>
+    <AuthProvider><CartProvider><div className="site-experience">{!driving && <InteractiveBackground />}<div className="site-content"><Routes>
       <Route path="/" element={<Home />} />
       <Route path="/sign-in" element={<Account key="login" />} />
       <Route path="/register" element={<Account key="register" mode="register" />} />
       <Route path="/profile" element={<Account key="profile" mode="profile" />} />
+      <Route path="/test-drive/:id" element={<TestDrive key={pathname}/>}/>
       <Route path="/experience" element={<Experience/>} />
       <Route path="/about" element={<About />} />
       <Route path="/cart" element={<Cart />} />
