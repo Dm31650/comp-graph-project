@@ -80,16 +80,17 @@ import { BoxGeometry } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 function buildWindows() {
   const parts = [];
-  const streets = [-96,-48,0,48];
+  const streets = [-192,-144,-96,-48,0,48,96,144];
   streets.forEach((x,i) => streets.forEach((z,j) => [-1,1].forEach(sx => [-1,1].forEach(sz => {
     const bx=x+24+sx*8.5, bz=z+24+sz*8.5;
     const height=8+((i*7+j*3+(sx+sz+2)*2)%6)*5;
     for(let f=0;f<Math.floor(height/3);f++) {
-      parts.push(new BoxGeometry(10,1.25,.025).translate(bx,2+f*3,bz+6.55));
-      parts.push(new BoxGeometry(.025,1.25,10).translate(bx-6.55,2+f*3,bz));
+      parts.push(new BoxGeometry(10,1.25,.025).translate(bx,2+f*3,bz+5.55));
+      parts.push(new BoxGeometry(.025,1.25,10).translate(bx-5.55,2+f*3,bz));
     }
   }))));
   const geometry = mergeGeometries(parts);
   parts.forEach(part=>part.dispose());
   return geometry;
 }
+
