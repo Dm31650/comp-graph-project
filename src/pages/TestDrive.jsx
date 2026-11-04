@@ -130,9 +130,22 @@ function initialDesign(carId,location) {
  if(location.state?.design)return normalizeDesign(location.state.design)||normalizeDesign({});
  try{return normalizeDesign(JSON.parse(sessionStorage.getItem(`test-drive:${carId}`)))||normalizeDesign({});}catch{return normalizeDesign({});}
 }
+function TouchControl({code,label,icon,keys,disabled}) {
+ const [pressed,setPressed]=useState(false);
+ const pointers=useRef(new Set());
+ const release=()=>{pointers.current.clear();keys.current.delete(code);setPressed(false);};
+ useEffect(()=>{if(disabled)release();return()=>{keys.current.delete(code);};},[disabled,code,keys]);
+ return <button type="button" className={pressed?'is-held':''} disabled={disabled} aria-label={label} onContextMenu={e=>e.preventDefault()}
+  onPointerDown={e=>{e.preventDefault();e.stopPropagation();pointers.current.add(e.pointerId);e.currentTarget.setPointerCapture(e.pointerId);keys.current.add(code);setPressed(true);}}
+  onPointerUp={e=>{pointers.current.delete(e.pointerId);if(!pointers.current.size)release();}}
+  onPointerCancel={release} onLostPointerCapture={e=>{pointers.current.delete(e.pointerId);if(!pointers.current.size)release();}}
+  onKeyDown={e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();keys.current.add(code);setPressed(true);}}}
+  onKeyUp={release} onBlur={release}><Icon name={icon}/><span>{label}</span></button>;
+}
 export default function TestDrive(){
  const {id}=useParams();const location=useLocation();const carId=Number(id);const car=cars.find(c=>c.id===carId);
  const [night,setNight]=useState(false);
+ const [lite,setLite]=useState(()=>matchMedia("(any-pointer: coarse), (max-width: 900px)").matches);
  const [design]=useState(()=>initialDesign(carId,location));const [paused,setPaused]=useState(true);const [ready,setReady]=useState(false);const [view,setView]=useState('Chase');const [reset,setReset]=useState(0);const [hud,setHud]=useState(spawn);const [message,setMessage]=useState('');
  const traffic=useRef({});
  const root=useRef();const sim=useRef(spawn());const keys=useRef(new Set());const orbit=useRef({yaw:0,pitch:.2});const drag=useRef(null);
@@ -142,31 +155,31 @@ export default function TestDrive(){
   const stop=()=>{keys.current.clear();setPaused(true);drag.current=null;};
   const down=e=>{if(e.target.closest('button,a,select,input'))return;if(['KeyW','KeyA','KeyS','KeyD','Space'].includes(e.code)){e.preventDefault();keys.current.add(e.code);}if(e.code==='Escape')stop();if(e.code==='KeyC'&&!e.repeat)setView(v=>CAMERAS[(CAMERAS.indexOf(v)+1)%CAMERAS.length]);};
   const up=e=>keys.current.delete(e.code);const hide=()=>{if(document.hidden)stop();};
-  window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',stop);document.addEventListener('visibilitychange',hide);
-  return()=>{document.body.style.overflow=previous;keys.current.clear();window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',stop);document.removeEventListener('visibilitychange',hide);};
+  window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',stop);window.addEventListener('orientationchange',stop);document.addEventListener('visibilitychange',hide);
+  return()=>{document.body.style.overflow=previous;keys.current.clear();window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',stop);window.removeEventListener('orientationchange',stop);document.removeEventListener('visibilitychange',hide);};
  },[]);
  useEffect(()=>{if(paused)keys.current.clear();},[paused]);
  if(!car||!carModels[carId])return <main className="drive-error"><h1>Choose a car first</h1><Link to="/#collection">Return to collection</Link></main>;
  const resume=()=>{keys.current.clear();setPaused(false);root.current?.focus();};
  const fullscreen=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(root.current.requestFullscreen)await root.current.requestFullscreen();else setMessage('This browser uses the full-page view.');}catch{setMessage('Fullscreen is unavailable; the full-page view is active.');}};
- const touch=(code,label)=><button aria-label={label} onPointerDown={e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);keys.current.add(code);}} onPointerUp={()=>keys.current.delete(code)} onPointerCancel={()=>keys.current.delete(code)} onLostPointerCapture={()=>keys.current.delete(code)}>{label}</button>;
+
  return <main className="test-drive" ref={root} tabIndex={-1}>
-  <DriveBoundary><Canvas camera={{position:[3,5,29],fov:60,near:.1,far:350}} dpr={[1,1.4]} gl={{antialias:true}} onPointerDown={e=>{if(view==='Free'){drag.current={x:e.clientX,y:e.clientY};e.target.setPointerCapture?.(e.pointerId);}}} onPointerMove={e=>{if(view==='Free'&&drag.current){orbit.current.yaw-=(e.clientX-drag.current.x)*.008;orbit.current.pitch=clamp(orbit.current.pitch+(e.clientY-drag.current.y)*.005,0,1.1);drag.current={x:e.clientX,y:e.clientY};}}} onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}}>
+  <DriveBoundary><Canvas camera={{position:[3,5,29],fov:60,near:.1,far:350}} dpr={lite?1:[1,1.4]} gl={{antialias:true}} onPointerDown={e=>{if(view==='Free'){drag.current={x:e.clientX,y:e.clientY};e.target.setPointerCapture?.(e.pointerId);}}} onPointerMove={e=>{if(view==='Free'&&drag.current){orbit.current.yaw-=(e.clientX-drag.current.x)*.008;orbit.current.pitch=clamp(orbit.current.pitch+(e.clientY-drag.current.y)*.005,0,1.1);drag.current={x:e.clientX,y:e.clientY};}}} onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}}>
    <color attach="background" args={['#a5becb']}/><fog attach="fog" args={['#a5becb',100,240]}/><DriveSky night={night}/>
-   <City sim={sim}/><CityLife sim={sim} traffic={traffic} paused={paused||!ready}/><Suspense fallback={<Html center><div className="drive-loading">Loading your customized car…</div></Html>}>
+   <City sim={sim}/><CityLife sim={sim} traffic={traffic} paused={paused||!ready} lite={lite}/><Suspense fallback={<Html center><div className="drive-loading">Loading your customized car…</div></Html>}>
     <Environment resolution={64}><Lightformer position={[0,8,0]} rotation={[Math.PI/2,0,0]} scale={[15,8,1]} intensity={2}/></Environment>
     <DrivingCar carId={carId} design={design} sim={sim} keys={keys} paused={paused} view={view} orbit={orbit} reset={reset} ready={ready} onReady={setReady} onHud={setHud} traffic={traffic}/>
    </Suspense>
   </Canvas></DriveBoundary>
   <header className="drive-top"><Link to={`/cars/${carId}#customize-car`} state={{savedDesign:design}}><Icon name="arrow-left"/> Exit drive</Link><div><small>LIMITLESS / CITY DRIVE</small><strong>{car.brand} {car.name}</strong></div><button onClick={fullscreen}>Fullscreen</button></header>
-  <aside className="drive-cameras" aria-label="Camera views">{CAMERAS.map(v=><button key={v} aria-pressed={view===v} onClick={()=>{setView(v);root.current?.focus();}}>{v}</button>)}<div className="drive-time-toggle" role="group" aria-label="Time of day"><button aria-pressed={!night} onClick={()=>{setNight(false);root.current?.focus();}}>Day</button><button aria-pressed={night} onClick={()=>{setNight(true);root.current?.focus();}}>Night</button></div></aside>
+  <aside className="drive-cameras" aria-label="Camera views"><label className="drive-camera-select">Camera<select value={view} onChange={e=>{setView(e.target.value);root.current?.focus();}}>{CAMERAS.map(v=><option key={v}>{v}</option>)}</select></label>{CAMERAS.map(v=><button className="drive-camera-preset" key={v} aria-pressed={view===v} onClick={()=>{setView(v);root.current?.focus();}}>{v}</button>)}<div className="drive-time-toggle" role="group" aria-label="Time of day"><button aria-pressed={!night} onClick={()=>{setNight(false);root.current?.focus();}}>Day</button><button aria-pressed={night} onClick={()=>{setNight(true);root.current?.focus();}}>Night</button></div><button aria-pressed={lite} onClick={()=>{setLite(v=>!v);root.current?.focus();}}>Lite graphics</button></aside>
   <div className="drive-dashboard"><div className="drive-speed"><strong>{Math.round(Math.abs(hud.speed)*3.6)}</strong><span>KM/H · {hud.speed<-.2?'REVERSE':'DRIVE'}</span><small>{(hud.distance/1000).toFixed(2)} km explored</small><small>Peak {Math.round(hud.peak||0)} / {DRIVE_LIMITS[carId]||300} km/h arcade limit</small></div><svg className="drive-map" viewBox="-220 -220 440 440" role="img" aria-label="City map and your position"><rect x="-220" y="-220" width="440" height="440" fill="#111e28"/>{STREETS.map(s=><path key={s} d={`M${s} -208V208M-208 ${s}H208`} stroke="#657984" strokeWidth="10"/>)}<path d="M0 -6 4 5 0 3-4 5Z" fill="#ff6534" transform={`translate(${hud.x},${Math.max(-210,hud.z)}) rotate(${-hud.yaw*180/Math.PI})`}/></svg></div>
   <footer className="drive-bottom"><span>W / S accelerate & reverse · A / D steer · Space brake · C camera · Esc pause</span><button onClick={()=>{setPaused(true);keys.current.clear();}}>Pause</button><button onClick={()=>{setReset(v=>v+2-v%2);keys.current.clear();root.current?.focus();}}>Reset car</button><button onClick={()=>{setReset(v=>v+1+(v%2));keys.current.clear();root.current?.focus();}}>Speed straight</button></footer>
   {view==='Free'&&<p className="drive-free-tip">Drag the scene to look around your car</p>}
-  <div className="drive-touch" aria-label="Touch driving controls"><div>{touch('KeyA','Left')}{touch('KeyD','Right')}</div><div>{touch('KeyW','Accelerate')}{touch('KeyS','Reverse')}{touch('Space','Brake')}</div></div>
+  <div className="drive-touch" aria-label="Touch driving controls"><div className="drive-steering"><TouchControl code="KeyA" label="Left" icon="arrow-left" keys={keys} disabled={paused}/><TouchControl code="KeyD" label="Right" icon="arrow-right" keys={keys} disabled={paused}/></div><div className="drive-pedals"><TouchControl code="KeyS" label="Reverse" icon="arrow-down" keys={keys} disabled={paused}/><TouchControl code="Space" label="Brake" icon="pause" keys={keys} disabled={paused}/><TouchControl code="KeyW" label="Go" icon="arrow-up" keys={keys} disabled={paused}/></div></div>
   {hud.hit>0&&<div className="drive-collision" role="status">Collision — slow down or reverse</div>}
   {message&&<p className="drive-message" role="status">{message}</p>}
-  {paused&&<div className="drive-pause"><section><p className="eyebrow">YOUR DESIGN. YOUR DRIVE.</p><h1>THE CITY IS YOURS.</h1><p>Explore the expanded city with moving traffic and sidewalk pedestrians. Take the northern road or use Speed straight to reach the 2 km acceleration corridor.</p><dl><div><dt>W / S</dt><dd>Accelerate / reverse</dd></div><div><dt>A / D</dt><dd>Steer left / right</dd></div><div><dt>SPACE</dt><dd>Brake</dd></div><div><dt>C / ESC</dt><dd>Camera / pause</dd></div></dl><button disabled={!ready} onClick={resume}>{ready?'Start / resume drive':'Loading your car…'}</button><Link to={`/cars/${carId}#customize-car`} state={{savedDesign:design}}>Back to customization</Link><small>Touch controls are available on phones. Traffic follows city loops and stops for lights. Pedestrians stay on sidewalks. Speed limits are arcade settings, not measured real-world performance.</small></section></div>}
+  {paused&&<div className="drive-pause"><section><p className="eyebrow">YOUR DESIGN. YOUR DRIVE.</p><h1>THE CITY IS YOURS.</h1><p>Explore the expanded city with moving traffic and sidewalk pedestrians. Take the northern road or use Speed straight to reach the 2 km acceleration corridor.</p><p className="drive-touch-help">Hold Go to accelerate and use Left / Right with your other thumb. Hold Brake to slow down; Reverse backs up. Choose Free camera and drag the scene to look around. Landscape gives you a wider view.</p><dl className="drive-keyboard-help"><div><dt>W / S</dt><dd>Accelerate / reverse</dd></div><div><dt>A / D</dt><dd>Steer left / right</dd></div><div><dt>SPACE</dt><dd>Brake</dd></div><div><dt>C / ESC</dt><dd>Camera / pause</dd></div></dl><button disabled={!ready} onClick={resume}>{ready?'Start / resume drive':'Loading your car…'}</button><Link to={`/cars/${carId}#customize-car`} state={{savedDesign:design}}>Back to customization</Link><small>Touch controls are available on phones. Traffic follows city loops and stops for lights. Pedestrians stay on sidewalks. Speed limits are arcade settings, not measured real-world performance.</small></section></div>}
  </main>;
 }
 

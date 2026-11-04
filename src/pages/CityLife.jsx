@@ -4,12 +4,12 @@ import CarModel from '../components/CarModel';
 import { carModels } from '../data/carModels';
 
 const roads = [-192,-144,-96,-48,0,48,96,144,192];
-function TrafficCar({ index, sim, traffic, paused }) {
+function TrafficCar({ index, sim, traffic, paused, lite }) {
  const group=useRef();const [floor,setFloor]=useState(-.7);const ready=useCallback(y=>setFloor(y),[]);
  const extent=48+(index%3)*48;
  const corners=[[-extent+3,extent-3],[-extent+3,-extent+3],[extent-3,-extent+3],[extent-3,extent-3]];
  const state=useRef({segment:index%4,t:.15+(index%2)*.45});
- const model=carModels[[2,4,6][index%3]];
+ const model=carModels[(lite?[2,4]:[2,4,6])[index%(lite?2:3)]];
  useEffect(()=>()=>{delete traffic.current[index];},[index,traffic]);
  useFrame((_,delta)=>{
   const s=state.current,a=corners[s.segment],b=corners[(s.segment+1)%4];
@@ -47,7 +47,7 @@ function Walker({index,sim}) {
   </group>)}
  </group>;
 }
-export default memo(function CityLife({sim,traffic,paused}) {
- return <>{Array.from({length:6},(_,i)=><Suspense key={i} fallback={null}><TrafficCar index={i} sim={sim} traffic={traffic} paused={paused}/></Suspense>)}{Array.from({length:24},(_,i)=><Walker key={i} index={i} sim={sim}/>)}</>;
+export default memo(function CityLife({sim,traffic,paused,lite}) {
+ return <>{Array.from({length:lite?3:6},(_,i)=><Suspense key={i} fallback={null}><TrafficCar index={i} sim={sim} traffic={traffic} paused={paused} lite={lite}/></Suspense>)}{Array.from({length:lite?12:24},(_,i)=><Walker key={i} index={i} sim={sim}/>)}</>;
 });
 
