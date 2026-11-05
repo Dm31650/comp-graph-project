@@ -51,5 +51,59 @@ export const carModels = {
     "source": "https://sketchfab.com/3d-models/2020-bmw-m8-coupe-f69bc7c528804552b2ff032d7c1e9fb4",
     "license": "CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)",
     "note": "2020 M8 Coupe visualization; not an exact 2025 Competition configuration."
-  }
+  },
+  "7": {
+  "url": "/models/ferrari-f8/scene.glb",
+  "rotation": 3.141592653589793,
+  "title": "2020 Ferrari F8 Tributo",
+  "author": "Ddiaz Design (https://sketchfab.com/ddiaz-design)",
+  "source": "https://sketchfab.com/3d-models/8a86c4d634f64f8b8ee836bc93fa6ac8",
+  "license": "CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)",
+  "note": "Artist-created 3D representation; trim and detail may differ from the reference specifications."
+},
+  "8": {
+  "url": "/models/lamborghini-revuelto/scene.glb",
+  "rotation": 3.141592653589793,
+  "title": "Free Lamborghini Revuelto",
+  "author": "ALIEEEN (https://sketchfab.com/ALIEEEN)",
+  "source": "https://sketchfab.com/3d-models/none-cf52245eb68f48daa909c7ad2a8deaa3",
+  "license": "CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)",
+  "note": "Artist-created 3D representation; trim and detail may differ from the reference specifications."
+},
+  "9": {
+  "url": "/models/bugatti-chiron/scene.glb",
+  "rotation": 0,
+  "title": "2023 Bugatti Chiron Profilee",
+  "author": "DisneyCars (https://sketchfab.com/supercarmodels)",
+  "source": "https://sketchfab.com/3d-models/6da5092ee455446cb050e4c6b4a3ac05",
+  "license": "CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)",
+  "note": "Artist-created 3D representation; trim and detail may differ from the reference specifications."
+},
+  "10": {
+  "url": "/models/mclaren-720s/scene.glb",
+  "rotation": 0,
+  "title": "2017 Mclaren 720s",
+  "author": "_shobh19 (https://sketchfab.com/s0h1o9b)",
+  "source": "https://sketchfab.com/3d-models/f7bece69400f4640a4a3be746b44998b",
+  "license": "CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)",
+  "note": "Artist-created 3D representation; trim and detail may differ from the reference specifications."
+},
+  "11": {
+  "url": "/models/pagani-huayra/scene.glb",
+  "rotation": 3.141592653589793,
+  "title": "Pagani Huayra [Free]",
+  "author": "Black Snow (https://sketchfab.com/BlackSnow02)",
+  "source": "https://sketchfab.com/3d-models/none-c2d61a9f53a54a229547bb76e4b71e25",
+  "license": "CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)",
+  "note": "Artist-created 3D representation; trim and detail may differ from the reference specifications."
+},
+  "12": {
+  "url": "/models/ferrari-laferrari/scene.glb",
+  "rotation": 3.141592653589793,
+  "title": "Ferrari Laferrari | www.vecarz.com",
+  "author": "vecarz (https://sketchfab.com/heynic)",
+  "source": "https://sketchfab.com/3d-models/none-979f7085012e4d6399f38de3f9c39012",
+  "license": "CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)",
+  "note": "Artist-created 3D representation; trim and detail may differ from the reference specifications."
+}
 };

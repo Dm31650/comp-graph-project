@@ -3,6 +3,9 @@ import './Icon.css';
 // Decorative by default; surrounding controls provide their accessible names.
 export default function Icon({ name = 'arrow-up-right', className = '' }) {
   const paths = {
+    heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z',
+    compare:'M4 5h6v14H4ZM14 5h6v14h-6Z',
+    check:'m5 12 4 4L19 6',
     'arrow-up-right': 'M6 18 18 6M6 6h12v12',
     'arrow-down-right': 'm6 6 12 12M6 18h12V6',
     'arrow-right': 'M4 12h16m-6-6 6 6-6 6',

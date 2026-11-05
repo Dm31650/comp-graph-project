@@ -47,6 +47,10 @@
     {
       "source": "/test-drive/:id",
       "destination": "/index.html"
+    },
+    {
+      "source": "/compare",
+      "destination": "/index.html"
     }
   ]
 }

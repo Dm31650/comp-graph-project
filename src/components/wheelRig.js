@@ -1,6 +1,12 @@
 import { Box3, BufferAttribute, BufferGeometry, Group, Mesh, Vector3 } from 'three';
 
 const exact = {
+ 'ferrari-f8': /_Wheel1A_3D/,
+ 'lamborghini-revuelto': /^(Tire|material|Brake_rotor)$/,
+ 'bugatti-chiron': /^(Neumatico1Mtl|Rin1Mtl)$/,
+ 'mclaren-720s': /^(tyres|rims)$/,
+ 'pagani-huayra': /^(Scene_-_Root\.002|pag_wheels_b)$/,
+ 'ferrari-laferrari': /^(tread|rim|disc)\./,
  porsche: /^(Material\.058|Material\.038_(58|59|60|61|62))$/,
  'bmw-m4': /Meshesm8rim/,
  'bmw-m8': /Wheel1A_3D/,
@@ -30,9 +36,10 @@ export function buildWheelRig(assembly, url, rotation = 0) {
    if(!indices.length)return;
    const geometry=new BufferGeometry();
    for(const [name,attribute] of Object.entries(raw.attributes)) {
-    if(attribute.isInterleavedBufferAttribute)continue;
-    const data=new attribute.array.constructor(indices.length*attribute.itemSize);
-    indices.forEach((index,i)=>{for(let c=0;c<attribute.itemSize;c++)data[i*attribute.itemSize+c]=attribute.array[index*attribute.itemSize+c];});
+
+    const source=attribute.isInterleavedBufferAttribute?attribute.data.array:attribute.array;
+    const data=new source.constructor(indices.length*attribute.itemSize);
+    indices.forEach((index,i)=>{for(let c=0;c<attribute.itemSize;c++)data[i*attribute.itemSize+c]=source[attribute.isInterleavedBufferAttribute?index*attribute.data.stride+attribute.offset+c:index*attribute.itemSize+c];});
     geometry.setAttribute(name,new BufferAttribute(data,attribute.itemSize,attribute.normalized));
    }
    geometry.translate(home.x,home.y,home.z);geometry.computeBoundingBox();

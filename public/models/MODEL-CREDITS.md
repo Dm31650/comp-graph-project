@@ -75,3 +75,70 @@ License: CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
 Changes: normalized for display; runtime assembly animation. Mercedes geometry decimated and textures resized for web use.
 
 Additional adaptations: Audi legacy specular/glossiness materials converted to metallic/roughness. Taycan missing materials recreated using named material slots (grey paint, dark glass, rubber and metal).
+
+
+## Supercar collection expansion
+
+### 2020 Ferrari F8 Tributo
+
+- Author: [Ddiaz Design](https://sketchfab.com/ddiaz-design)
+- Original work: [Sketchfab model](https://sketchfab.com/3d-models/8a86c4d634f64f8b8ee836bc93fa6ac8)
+- License: [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/)
+- Web asset: [carros library](https://github.com/pedrosoandre/carros/blob/2d18dfd9db96bbf0d9cffa949deaf7f571388cbf/assets/ferrari-f8.glb)
+- Local file: ferrari-f8/scene.glb
+- Modifications: library web optimization; runtime paint, wheel articulation and lighting.
+- Catalog preview: thumbnail of the credited source work, hosted locally.
+
+### Free Lamborghini Revuelto
+
+- Author: [ALIEEEN](https://sketchfab.com/ALIEEEN)
+- Original work: [Sketchfab model](https://sketchfab.com/3d-models/none-cf52245eb68f48daa909c7ad2a8deaa3)
+- License: [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/)
+- Web asset: [carros library](https://github.com/pedrosoandre/carros/blob/2d18dfd9db96bbf0d9cffa949deaf7f571388cbf/assets/lamborghini-revuelto.glb)
+- Local file: lamborghini-revuelto/scene.glb
+- Modifications: library web optimization; runtime paint, wheel articulation and lighting.
+- Catalog preview: thumbnail of the credited source work, hosted locally.
+
+### 2023 Bugatti Chiron Profilee
+
+- Author: [DisneyCars](https://sketchfab.com/supercarmodels)
+- Original work: [Sketchfab model](https://sketchfab.com/3d-models/6da5092ee455446cb050e4c6b4a3ac05)
+- License: [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/)
+- Web asset: [carros library](https://github.com/pedrosoandre/carros/blob/2d18dfd9db96bbf0d9cffa949deaf7f571388cbf/assets/bugatti-chiron.glb)
+- Local file: bugatti-chiron/scene.glb
+- Modifications: library web optimization; source scene rotated to align the driving axis; runtime paint, wheel articulation and lighting.
+- Catalog preview: thumbnail of the credited source work, hosted locally.
+
+### 2017 Mclaren 720s
+
+- Author: [_shobh19](https://sketchfab.com/s0h1o9b)
+- Original work: [Sketchfab model](https://sketchfab.com/3d-models/f7bece69400f4640a4a3be746b44998b)
+- License: [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/)
+- Web asset: [carros library](https://github.com/pedrosoandre/carros/blob/2d18dfd9db96bbf0d9cffa949deaf7f571388cbf/assets/mclaren-720s.glb)
+- Local file: mclaren-720s/scene.glb
+- Modifications: library web optimization; source scene rotated to align the driving axis; runtime paint, wheel articulation and lighting.
+- Catalog preview: thumbnail of the credited source work, hosted locally.
+
+### Pagani Huayra [Free]
+
+- Author: [Black Snow](https://sketchfab.com/BlackSnow02)
+- Original work: [Sketchfab model](https://sketchfab.com/3d-models/none-c2d61a9f53a54a229547bb76e4b71e25)
+- License: [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/)
+- Web asset: [carros library](https://github.com/pedrosoandre/carros/blob/2d18dfd9db96bbf0d9cffa949deaf7f571388cbf/assets/pagani-huayra.glb)
+- Local file: pagani-huayra/scene.glb
+- Modifications: library web optimization; runtime paint, wheel articulation and lighting.
+- Catalog preview: thumbnail of the credited source work, hosted locally.
+
+### Ferrari Laferrari | www.vecarz.com
+
+- Author: [vecarz](https://sketchfab.com/heynic)
+- Original work: [Sketchfab model](https://sketchfab.com/3d-models/none-979f7085012e4d6399f38de3f9c39012)
+- License: [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/)
+- Web asset: [carros library](https://github.com/pedrosoandre/carros/blob/2d18dfd9db96bbf0d9cffa949deaf7f571388cbf/assets/ferrari-laferrari.glb)
+- Local file: ferrari-laferrari/scene.glb
+- Modifications: library web optimization; runtime paint, wheel articulation and lighting.
+- Catalog preview: thumbnail of the credited source work, hosted locally.
+
+## Brand identification
+
+Brand emblems are used to identify the marques represented in this educational showroom. They belong to their respective owners; this project is not affiliated with those manufacturers. See [logo sources and notices](/images/brands/CREDITS.md).

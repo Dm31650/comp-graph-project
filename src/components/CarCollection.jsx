@@ -1,3 +1,5 @@
+import { useVehicleSelection, updateSelection } from '../collection/selection';
+import '../styles/CollectionTools.css';
 import Icon from './Icon';
 import AddToCartButton from "./AddToCartButton";
 
@@ -5,13 +7,7 @@ import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { cars } from "../data/cars";
 
-const brands = [
-  "All",
-  "Porsche",
-  "BMW",
-  "Mercedes-Benz",
-  "Audi",
-];
+const brands = ["All", ...new Set(cars.map(car=>car.brand))];
 
 const formatPrice = (price) =>
   new Intl.NumberFormat("en-US", {
@@ -22,15 +18,16 @@ const formatPrice = (price) =>
 
 /* CAR CARD */
 function CarCard({ car }) {
+  const selection=useVehicleSelection(); const favorite=selection.favorites.includes(car.id),compared=selection.compare.includes(car.id);
   return (
     <article className="collection-card">
-      <div className="collection-card-image">
+      <div className="collection-card-image"><div className="collection-card-tools"><button type="button" aria-label={`${favorite?"Remove":"Add"} ${car.brand} ${car.name} ${favorite?"from":"to"} shortlist`} title={favorite?"Remove from shortlist":"Save to shortlist"} aria-pressed={favorite} onClick={()=>updateSelection("favorites",car.id)}><Icon name="heart"/></button></div>
         {car.image ? (
-          <img
+          <Link to={`/cars/${car.id}`}><img
             src={car.image}
             alt={`${car.brand} ${car.name}`}
             loading="lazy"
-          />
+          /></Link>
         ) : (
           <div className="car-placeholder">
             <span className="placeholder-brand">
@@ -50,9 +47,9 @@ function CarCard({ car }) {
           </div>
         )}
 
-        {car.featured && (
+        {(car.featured || car.newArrival) && (
           <span className="featured-tag">
-            FEATURED
+            {car.newArrival ? "NEW / SUPERCAR COLLECTION" : "FEATURED"}
           </span>
         )}
       </div>
@@ -94,13 +91,14 @@ function CarCard({ car }) {
           </Link>
         </div>
       </div>
-      <AddToCartButton car={car} />
+      <AddToCartButton car={car} /><div className="collection-card-compare"><button type="button" aria-pressed={compared} disabled={!compared&&selection.compare.length>=3} onClick={()=>updateSelection("compare",car.id)}><Icon name={compared?"check":"compare"}/>{compared?"Selected":"Compare"}</button><Link to={`/test-drive/${car.id}`}>Test drive <Icon name="arrow-up-right"/></Link></div>
     </article>
   );
 }
 
 /* COLLECTION */
 function CarCollection() {
+  const selection=useVehicleSelection(); const [favoritesOnly,setFavoritesOnly]=useState(false); const [fuel,setFuel]=useState("All powertrains");
   const [params,setParams] = useSearchParams();
   const selectedBrand = brands.includes(params.get("brand")) ? params.get("brand") : "All"; const setSelectedBrand = brand => { const next=new URLSearchParams(params); if(brand==="All")next.delete("brand");else next.set("brand",brand);setParams(next,{replace:true,preventScrollReset:true}); };
 
@@ -120,7 +118,7 @@ function CarCollection() {
         search.trim().toLowerCase()
       );
 
-      return matchesBrand && matchesSearch;
+      return matchesBrand && matchesSearch && (!favoritesOnly||selection.favorites.includes(car.id)) && (fuel==="All powertrains"||car.fuel===fuel);
     });
 
     if (sort === "low") {
@@ -142,7 +140,7 @@ function CarCollection() {
     }
 
     return result;
-  }, [selectedBrand, search, sort]);
+  }, [selectedBrand, search, sort, favoritesOnly, selection.favorites, fuel]);
 
   return (
     <section
@@ -230,6 +228,7 @@ function CarCollection() {
         </div>
       </div>
 
+      <div className="collection-secondary-filters"><label>Powertrain<select value={fuel} onChange={e=>setFuel(e.target.value)}>{['All powertrains','Petrol','Hybrid','Electric'].map(item=><option key={item}>{item}</option>)}</select></label><label><input type="checkbox" checked={favoritesOnly} onChange={e=>setFavoritesOnly(e.target.checked)}/> Shortlist only ({selection.favorites.length})</label><span>Shortlist saved on this device</span></div>
       {/* VEHICLE GRID */}
       {filteredCars.length > 0 ? (
         <div className="collection-grid">
@@ -253,13 +252,14 @@ function CarCollection() {
             onClick={() => {
               setSelectedBrand("All");
               setSearch("");
-              setSort("default");
+              setSort("default");setFavoritesOnly(false);setFuel("All powertrains");
             }}
           >
             Clear filters
           </button>
         </div>
       )}
+      {selection.compare.length>0&&<aside className="compare-tray" aria-label="Vehicle comparison selection"><div><strong>{selection.compare.length} / 3 vehicles selected</strong><small>{selection.compare.map(id=>cars.find(c=>c.id===id)?.name).join(' / ')}</small></div><Link to={`/compare?cars=${selection.compare.join(',')}`}>Compare <Icon name="arrow-right"/></Link><button onClick={()=>updateSelection('clearCompare')}>Clear</button></aside>}
     </section>
   );
 }

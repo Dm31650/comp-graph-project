@@ -17,7 +17,7 @@ import { normalizeDesign } from '../cart/cart';
 import './TestDrive.css';
 
 // Arcade limits in km/h, not manufacturer performance claims.
-const DRIVE_LIMITS = {1:300,2:290,3:310,4:305,5:300,6:305};
+const DRIVE_LIMITS = Object.fromEntries(cars.map(car=>[car.id,car.topSpeed||({1:300,2:290,3:310,4:305,5:300,6:305}[car.id])||300]));
 const CAMERAS = ['Chase', 'Front', 'Left', 'Right', 'Overhead', 'Free'];
 const spawn = () => ({x:3,z:18,yaw:0,speed:0,steer:0,acceleration:0,distance:0,hit:0,time:0,peak:0});
 const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));

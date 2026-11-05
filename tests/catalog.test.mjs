@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import {cars} from '../src/data/cars.js';import {carModels} from '../src/data/carModels.js';
+import {normalizeSelection} from '../src/collection/selection.js';import {cleanCart} from '../src/cart/cart.js';
+test('all 12 cars have unique IDs, a local model and preview',()=>{assert.equal(cars.length,12);assert.equal(new Set(cars.map(c=>c.id)).size,12);for(const car of cars){assert.ok(fs.existsSync('public'+car.image));assert.ok(fs.existsSync('public'+carModels[car.id].url));}for(const brand of ['Ferrari','Lamborghini','Bugatti','McLaren','Pagani'])assert.ok(cars.some(c=>c.brand===brand));});
+test('all new cars are accepted by cart normalization with a design snapshot',()=>{const cart=cleanCart(cars.filter(c=>c.id>6).map(c=>({carId:c.id,quantity:1,design:{paint:'#123456',wheels:'#c29b55'}})));assert.equal(cart.length,6);assert.ok(cart.every(item=>item.design.paint==='#123456'&&item.design.wheels==='#c29b55'));});
+test('shortlist rejects invalid IDs and comparison is limited to three unique cars',()=>{assert.deepEqual(normalizeSelection({favorites:[7,7,8,1000,'9'],compare:[9,10,11,12,9]}),{favorites:[7,8],compare:[9,10,11]});assert.deepEqual(normalizeSelection(null),{favorites:[],compare:[]});});

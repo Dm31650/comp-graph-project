@@ -23,6 +23,7 @@ import "./App.css";
 import "./styles/Premium.css";
 import InteractiveBackground from "./components/InteractiveBackground";
 
+const VehicleCompare = lazy(()=>import('./pages/VehicleCompare'));
 const TestDrive = lazy(()=>import('./pages/TestDrive'));
 const Experience = lazy(()=>import('./pages/Experience'));
 const loading = <div className="route-loading">Preparing your experience…</div>;
@@ -145,6 +146,7 @@ function App() {
       <Route path="/register" element={<Account key="register" mode="register" />} />
       <Route path="/profile" element={<Account key="profile" mode="profile" />} />
       <Route path="/test-drive/:id" element={<Suspense fallback={loading}><TestDrive key={pathname}/></Suspense>}/>
+      <Route path="/compare" element={<Suspense fallback={loading}><VehicleCompare/></Suspense>}/>
       <Route path="/experience" element={<Suspense fallback={loading}><Experience/></Suspense>} />
       <Route path="/about" element={<About />} />
       <Route path="/cart" element={<Cart />} />

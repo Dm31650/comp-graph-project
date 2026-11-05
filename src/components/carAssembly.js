@@ -11,7 +11,9 @@ export function createAssembly(scene) {
   scene.traverse((node) => {
     if (!node.isMesh || !node.visible) return;
     const geometry = node.geometry.clone();
-    const positions = geometry.attributes.position;
+    // Compressed glTF positions may be normalized integers; world-space baking needs floats.
+    const positions = new THREE.Float32BufferAttribute(new Float32Array(node.geometry.attributes.position.count * 3), 3);
+    geometry.setAttribute("position", positions);
     const vertex = new THREE.Vector3();
     for (let i = 0; i < positions.count; i++) {
       node.getVertexPosition(i, vertex).applyMatrix4(node.matrixWorld);
@@ -19,6 +21,9 @@ export function createAssembly(scene) {
     }
     geometry.deleteAttribute("skinIndex");
     geometry.deleteAttribute("skinWeight");
+    // Rebuilt normals must also use floats; accumulating into quantized normals overflows.
+    geometry.deleteAttribute("normal");
+    geometry.deleteAttribute("tangent");
     geometry.computeVertexNormals();
     geometry.computeBoundingBox();
     const center = geometry.boundingBox.getCenter(new THREE.Vector3());

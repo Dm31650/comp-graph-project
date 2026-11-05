@@ -2,6 +2,12 @@ import * as THREE from "three";
 
 // Explicit source-material mappings keep tires, lamps and interiors untouched.
 const profiles = {
+  "ferrari-f8": {"paint":["Ferrari_F8TributoRewardRecycled_2020Paint_Material"],"wheels":["Ferrari_F8TributoRewardRecycled_2020_Wheel1A_3D_3DWheel1A_Material"],"glass":["Ferrari_F8TributoRewardRecycled_2020Window_Material"]},
+  "lamborghini-revuelto": {"paint":["Body"],"wheels":["material"],"glass":["Windows"]},
+  "bugatti-chiron": {"paint":["Meshpart128Mtl","Meshpart5Mtl","Meshpart70Mtl"],"wheels":["Rin1Mtl"],"glass":["Meshpart152Mtl","Meshpart168Mtl","Meshpart220Mtl"]},
+  "mclaren-720s": {"paint":["body"],"wheels":["rims"],"glass":["glass"]},
+  "pagani-huayra": {"paint":["PAG_HUAYRA_PAINT","PAG_HUAYRA_PAINT_2"],"wheels":["pag_wheels_b"],"glass":["pag_glass","PAG_HUAYRA_WINDOWS_2"]},
+  "ferrari-laferrari": {"paint":["Body"],"wheels":["rim.001","rim.002"],"glass":["Glasses","Engine_glass"]},
   porsche: { paint: ["Material.038_0", "Material.035"], wheels: [], glass: ["Material.038_48"] },
   "bmw-m4": { paint: ["Meshesbody151Mtl"], wheels: ["Meshesm8rim1Mtl", "Meshesm8rim0011Mtl"], glass: ["Mesheswindows1Mtl"] },
   "mercedes-amg": { paint: ["body", "mirror"], wheels: [], glass: ["windows"] },

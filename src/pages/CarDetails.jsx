@@ -1,3 +1,5 @@
+import { useVehicleSelection, updateSelection } from '../collection/selection';
+import '../styles/CollectionTools.css';
 import Icon from '../components/Icon';
 import AddToCartButton from "../components/AddToCartButton";
 import { SiteHeader, SiteFooter } from "../components/SiteChrome";
@@ -20,6 +22,7 @@ const formatPrice = (price) =>
   }).format(price);
 
 function CarDetails() {
+  const selection=useVehicleSelection();
   const { id } = useParams();
 
   const car = cars.find(
@@ -87,7 +90,7 @@ function CarDetails() {
             </p>
           </div>
 
-          <div className="vehicle-price">
+          <div className="vehicle-price"><button type="button" className="vehicle-detail-shortlist" aria-pressed={selection.favorites.includes(car.id)} onClick={()=>updateSelection("favorites",car.id)}><Icon name="heart"/>{selection.favorites.includes(car.id)?"Shortlisted":"Save to shortlist"}</button>
             <span>DEMONSTRATION PRICE</span>
             <strong>
               {formatPrice(car.price)}
@@ -250,6 +253,7 @@ function CarDetails() {
           </div>
         </section>
 
+        {car.specSource && <p className="collection-storage-note"><a href={car.specSource} target="_blank" rel="noreferrer">Manufacturer reference <Icon name="arrow-up-right"/></a></p>}
         {/* BOTTOM */}
         <div className="vehicle-bottom">
           <div>
