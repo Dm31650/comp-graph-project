@@ -25,6 +25,8 @@ export function createAssembly(scene) {
     geometry.translate(-center.x, -center.y, -center.z);
     const mesh = new THREE.Mesh(geometry, node.material);
     mesh.name = node.name;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     mesh.position.copy(center);
     root.add(mesh);
     pieces.push({ mesh, home: center });

@@ -1,3 +1,4 @@
+import { BLOCKS } from './cityLayout';
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Color } from 'three';
@@ -8,7 +9,7 @@ const NIGHT = new Color('#080f27');
 const SUN = new Color('#fff0bc');
 const SUNSET = new Color('#ff7548');
 
-export default function DriveSky({ night }) {
+export default function DriveSky({ night, sim, lite }) {
   const sun = useRef(), moon = useRef(), stars = useRef();
   const daylight = useRef(), moonlight = useRef(), ambient = useRef();
   const windows = useRef();
@@ -56,7 +57,8 @@ export default function DriveSky({ night }) {
     moon.current.material.opacity = Math.max(0, (p - .35) / .65);
     stars.current.position.copy(camera.position);
     stars.current.material.opacity = Math.max(0, (p - .45) / .55);
-    daylight.current.position.set(50, Math.max(2, Math.sin(sunAngle) * 165), -100);
+    daylight.current.position.set((sim?.current.x||0)+50, Math.max(2, Math.sin(sunAngle)*165), (sim?.current.z||0)-100);
+    daylight.current.target.position.set(sim?.current.x||0,0,sim?.current.z||0);daylight.current.target.updateMatrixWorld();
     daylight.current.color.copy(colors.sun);
     daylight.current.intensity = 3 * (1 - p);
     moonlight.current.intensity = p * 1.2;
@@ -66,7 +68,7 @@ export default function DriveSky({ night }) {
   });
   return <>
     <hemisphereLight ref={ambient} args={['#e7f2ff', '#5e6856', 2.2]} />
-    <directionalLight ref={daylight} position={[30,70,-40]} intensity={3} />
+    <directionalLight ref={daylight} position={[30,70,-40]} intensity={3} castShadow={!lite} shadow-mapSize={[1024,1024]} shadow-camera-left={-40} shadow-camera-right={40} shadow-camera-top={40} shadow-camera-bottom={-40} shadow-camera-far={260} shadow-bias={-.0004} shadow-normalBias={.04}/>
     <directionalLight ref={moonlight} position={[-65,90,-100]} color="#91b7ff" intensity={0} />
     <mesh ref={sun} renderOrder={1}><sphereGeometry args={[9,24,16]}/><meshBasicMaterial color="#fff0bc" fog={false} transparent depthWrite={false} toneMapped={false}/></mesh>
     <mesh ref={moon} renderOrder={1}><sphereGeometry args={[6,24,16]}/><meshBasicMaterial color="#dbe8ff" fog={false} transparent opacity={0} depthWrite={false} toneMapped={false}/></mesh>
@@ -80,17 +82,13 @@ import { BoxGeometry } from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 function buildWindows() {
   const parts = [];
-  const streets = [-192,-144,-96,-48,0,48,96,144];
-  streets.forEach((x,i) => streets.forEach((z,j) => [-1,1].forEach(sx => [-1,1].forEach(sz => {
-    const bx=x+24+sx*8.5, bz=z+24+sz*8.5;
-    const height=8+((i*7+j*3+(sx+sz+2)*2)%6)*5;
-    for(let f=0;f<Math.floor(height/3);f++) {
-      parts.push(new BoxGeometry(10,1.25,.025).translate(bx,2+f*3,bz+5.55));
-      parts.push(new BoxGeometry(.025,1.25,10).translate(bx-5.55,2+f*3,bz));
+  BLOCKS.forEach(b=>{
+    for(let f=0;f<Math.floor(b.h/3);f++) {
+      parts.push(new BoxGeometry(10,1.25,.025).translate(b.x,2+f*3,b.z+b.d/2+.06));
+      parts.push(new BoxGeometry(.025,1.25,10).translate(b.x-b.w/2-.06,2+f*3,b.z));
     }
-  }))));
+  });
   const geometry = mergeGeometries(parts);
   parts.forEach(part=>part.dispose());
   return geometry;
 }
-

@@ -2,7 +2,7 @@ import Icon from './Icon';
 import AddToCartButton from "./AddToCartButton";
 
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { cars } from "../data/cars";
 
 const brands = [
@@ -101,8 +101,8 @@ function CarCard({ car }) {
 
 /* COLLECTION */
 function CarCollection() {
-  const [selectedBrand, setSelectedBrand] =
-    useState("All");
+  const [params,setParams] = useSearchParams();
+  const selectedBrand = brands.includes(params.get("brand")) ? params.get("brand") : "All"; const setSelectedBrand = brand => { const next=new URLSearchParams(params); if(brand==="All")next.delete("brand");else next.set("brand",brand);setParams(next,{replace:true,preventScrollReset:true}); };
 
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("default");

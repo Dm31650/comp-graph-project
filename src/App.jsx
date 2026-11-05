@@ -1,11 +1,12 @@
-import TestDrive from './pages/TestDrive';
+import BrandCarousel, { DriveInvitation } from './components/BrandCarousel';
+
 import Icon from './components/Icon';
-import Experience from './pages/Experience';
+
 import Account from "./pages/Account";
 import { AuthProvider } from "./auth/AuthContext";
 import { SiteHeader, SiteFooter, ExperienceBand, ShowroomFAQ } from "./components/SiteChrome";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, lazy, Suspense } from "react";
 import { Routes, Route, Link, useLocation } from "react-router";
 import { gsap } from "gsap";
 
@@ -19,7 +20,12 @@ import { CartProvider } from "./cart/CartContext";
 import "./pages/Shop.css";
 
 import "./App.css";
+import "./styles/Premium.css";
 import InteractiveBackground from "./components/InteractiveBackground";
+
+const TestDrive = lazy(()=>import('./pages/TestDrive'));
+const Experience = lazy(()=>import('./pages/Experience'));
+const loading = <div className="route-loading">Preparing your experience…</div>;
 
 function Home() {
   const pageRef = useRef(null);
@@ -114,18 +120,14 @@ function Home() {
       </section>
 
       {/* BRANDS */}
-      <div className="brands">
-        <span>PORSCHE</span>
-        <span>BMW</span>
-        <span>MERCEDES-BENZ</span>
-        <span>AUDI</span>
-      </div>
+      <BrandCarousel />
 
       <ExperienceBand />
 
       {/* CAR COLLECTION */}
       <CarCollection />
 
+      <DriveInvitation />
       <ShowroomFAQ />
       <SiteFooter />
     </main>
@@ -142,8 +144,8 @@ function App() {
       <Route path="/sign-in" element={<Account key="login" />} />
       <Route path="/register" element={<Account key="register" mode="register" />} />
       <Route path="/profile" element={<Account key="profile" mode="profile" />} />
-      <Route path="/test-drive/:id" element={<TestDrive key={pathname}/>}/>
-      <Route path="/experience" element={<Experience/>} />
+      <Route path="/test-drive/:id" element={<Suspense fallback={loading}><TestDrive key={pathname}/></Suspense>}/>
+      <Route path="/experience" element={<Suspense fallback={loading}><Experience/></Suspense>} />
       <Route path="/about" element={<About />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/contact" element={<Contact />} />
@@ -180,4 +182,3 @@ function App() {
 }
 
 export default App;
-

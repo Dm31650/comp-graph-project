@@ -40,7 +40,7 @@ function Capture({capture,ready,onDone}){
  useEffect(()=>{if(!capture||!ready)return;try{gl.render(scene,camera);const link=document.createElement('a');link.download='limitless-my-design.png';link.href=gl.domElement.toDataURL('image/png');link.click();onDone('Your scene image has been downloaded.');}catch{onDone('Image download was unavailable. Try again after the model loads.');}},[capture]);
  return null;
 }
-function Vehicle({carId,design,position=[0,0,0],scale=1,speed=0,onReady}){const model=carModels[carId];return <group position={position} scale={scale}><CarModel modelUrl={model.url} modelRotation={model.rotation||0} customization={design} skip driveSpeed={speed} onReady={onReady}/></group>;}
+function Vehicle({carId,design,position=[0,0,0],scale=1,speed=0,onReady}){const model=carModels[carId];return <group position={position} scale={scale}><CarModel modelUrl={model.url} modelRotation={model.rotation||0} customization={design} skip animateWheels driveSpeed={speed} onReady={onReady}/></group>;}
 function Lights({enabled,braking}){return <group>{[-.7,.7].map(x=><group key={x}><mesh position={[x,-.1,-2.7]}><sphereGeometry args={[.065,12,8]}/><meshBasicMaterial color={enabled?'#e9f6ff':'#333'}/></mesh>{enabled&&<pointLight position={[x,-.4,-3.4]} intensity={20} distance={10} color="#e9f6ff"/>}<mesh position={[x,0,2.7]}><boxGeometry args={[.4,.08,.03]}/><meshBasicMaterial color={braking?'#ff1838':'#661327'}/></mesh></group>)}</group>;}
 
 export default function Experience(){

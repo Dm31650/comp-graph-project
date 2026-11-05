@@ -1,0 +1,11 @@
+import { useRef } from 'react';
+import { Link } from 'react-router';
+import { cars } from '../data/cars';
+import Icon from './Icon';
+
+export default function BrandCarousel(){
+ const rail=useRef();const brands=[...new Set(cars.map(c=>c.brand))];
+ const move=direction=>rail.current?.scrollBy({left:direction*280,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+ return <section className="brand-gallery" aria-label="Browse by marque"><div className="brand-gallery-heading"><div><p className="eyebrow">ICONS OF AUTOMOTIVE DESIGN</p><h2>Find your signature.</h2></div><div><button onClick={()=>move(-1)} aria-label="Previous brands"><Icon name="arrow-left"/></button><button onClick={()=>move(1)} aria-label="Next brands"><Icon name="arrow-right"/></button></div></div><div ref={rail} className="brand-gallery-rail">{brands.map((brand,i)=><Link key={brand} to={`/?brand=${encodeURIComponent(brand)}#collection`} onClick={()=>document.getElementById('collection')?.scrollIntoView()} className="brand-gallery-card"><span className="brand-monogram" aria-hidden="true">{['P','M','MB','////'][i]||brand[0]}</span><span>{brand}</span><small>{cars.filter(c=>c.brand===brand).length} {cars.filter(c=>c.brand===brand).length===1?"vehicle":"vehicles"} <Icon name="arrow-up-right"/></small></Link>)}</div></section>;
+}
+export function DriveInvitation(){return <section className="drive-invitation"><div className="drive-invitation-art"><img src="/images/cars/bmw-m4.jpg" alt="BMW M4 in the collection" loading="lazy"/><span>DESIGN IT. DRIVE IT.</span></div><div className="drive-invitation-copy"><p className="eyebrow">THE STREETS ARE CALLING</p><h2>From your imagination.<br/><em>Into the city.</em></h2><p>Choose your paint. Make it yours. Then take your creation out into a living 3D city, from golden-hour streets to a midnight speed run.</p><div><Link className="premium-action" to="/test-drive/1">Explore City Drive <Icon name="arrow-up-right"/></Link><Link to="/#collection" onClick={()=>document.getElementById('collection')?.scrollIntoView()}>Build your own <Icon name="arrow-right"/></Link></div><ul><li>Custom designs</li><li>Day & night</li><li>Touch & keyboard</li></ul></div></section>;}

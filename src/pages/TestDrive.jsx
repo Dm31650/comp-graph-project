@@ -1,4 +1,8 @@
+import CityDetails from './CityDetails';
+import { STREETS, BLOCKS, CITY_EDGE, roadDistance } from './cityLayout';
+import { stepVehicle } from './drivingPhysics';
 import CityLife from './CityLife';
+import VehicleLighting from './VehicleLighting';
 import DriveSky from './DriveSky';
 import { Component, Suspense, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
@@ -12,17 +16,11 @@ import { carModels } from '../data/carModels';
 import { normalizeDesign } from '../cart/cart';
 import './TestDrive.css';
 
-const STREETS = [-192,-144,-96,-48,0,48,96,144,192];
 // Arcade limits in km/h, not manufacturer performance claims.
 const DRIVE_LIMITS = {1:300,2:290,3:310,4:305,5:300,6:305};
 const CAMERAS = ['Chase', 'Front', 'Left', 'Right', 'Overhead', 'Free'];
-const BLOCKS = STREETS.slice(0,-1).flatMap((x,i)=>STREETS.slice(0,-1).flatMap((z,j)=>[-1,1].flatMap((sx)=>[-1,1].map(sz=>({
- x:x+24+sx*8.5,z:z+24+sz*8.5,w:11,d:11,h:8+((i*7+j*3+(sx+sz+2)*2)%6)*5,
- color:['#718093','#53667a','#9b8b80','#496777'][(i+j+(sx+sz+2))%4],
-})))));
-const spawn = () => ({x:3,z:18,yaw:0,speed:0,distance:0,hit:0,time:0,peak:0});
+const spawn = () => ({x:3,z:18,yaw:0,speed:0,steer:0,acceleration:0,distance:0,hit:0,time:0,peak:0});
 const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
-const roadDistance = n => Math.min(...STREETS.map(s=>Math.abs(n-s)));
 
 class DriveBoundary extends Component {
  state={failed:false};
@@ -43,16 +41,16 @@ function Signal({x,z,axis,time}) {
  return <group position={[x,0,z]} rotation={[0,axis*Math.PI/2,0]}>
   <Box position={[0,2.4,0]} size={[.15,4.8,.15]} color="#343e48"/>
   <Box position={[0,4.5,0]} size={[.7,1.8,.45]} color="#121a23"/>
-  {[0,1,2].map(i=><mesh key={i} position={[0,5.05-i*.55,.25]}><sphereGeometry args={[.19,8,8]}/><meshStandardMaterial ref={m=>lamps.current[i]=m} emissive={['#ff2020','#ffb000','#00ff80'][i]}/></mesh>)}
+  {[0,1,2].map(i=><mesh key={i} position={[0,5.05-i*.55,.25]}><sphereGeometry args={[.19,8,8]}/><meshStandardMaterial ref={m=>lamps.current[i]=m} emissive={['#ff2980','#ffb000','#00ff80'][i]}/></mesh>)}
  </group>;
 }
 const City = memo(function City({sim}) {
- return <Instances limit={10000} frames={2} frustumCulled={false}><boxGeometry/><meshStandardMaterial roughness={.8}/>
-  <Box position={[0,-.4,0]} size={[440,.7,440]} color="#536750"/>
+ return <Instances castShadow receiveShadow limit={24000} frames={2} frustumCulled={false}><boxGeometry/><meshStandardMaterial roughness={.8}/>
+  <Box position={[0,-.4,0]} size={[620,.7,620]} color="#536750"/>
   {STREETS.map(s=><group key={s}>
-   <Box position={[s,-.02,0]} size={[16,.12,420]} color="#303943"/>
-   <Box position={[0,0,s]} size={[420,.12,16]} color="#303943"/>
-   {Array.from({length:83},(_,i)=>i*5-205).filter(v=>roadDistance(v)>10).map(v=><group key={v}>
+   <Box position={[s,-.02,0]} size={[16,.12,600]} color="#303943"/>
+   <Box position={[0,0,s]} size={[600,.12,16]} color="#303943"/>
+   {Array.from({length:119},(_,i)=>i*5-295).filter(v=>roadDistance(v)>10).map(v=><group key={v}>
     <Box position={[s,.07,v]} size={[.13,.025,2.3]} color="#e6d9a2"/>
     <Box position={[v,.08,s]} size={[2.3,.025,.13]} color="#e6d9a2"/>
    </group>)}
@@ -73,58 +71,50 @@ const City = memo(function City({sim}) {
     <Box position={[x+side*10,.1,z-5+i*2]} size={[2,.025,.85]} color="#d6d9d6"/>
    </group>))}
   </group>))}
-  <Box position={[-202,1,0]} size={[.6,2,404]} color="#d6b56a"/><Box position={[202,1,0]} size={[.6,2,404]} color="#d6b56a"/><Box position={[0,1,202]} size={[404,2,.6]} color="#d6b56a"/><Box position={[-108,1,-202]} size={[188,2,.6]} color="#d6b56a"/><Box position={[108,1,-202]} size={[188,2,.6]} color="#d6b56a"/>
-  <Box position={[0,-.4,-1220]} size={[75,.7,2040]} color="#536750"/>
-  <Box position={[0,.02,-1210]} size={[24,.14,2020]} color="#303943"/>
+  <Box position={[-298,1,0]} size={[.6,2,596]} color="#d6b56a"/><Box position={[298,1,0]} size={[.6,2,596]} color="#d6b56a"/><Box position={[0,1,298]} size={[596,2,.6]} color="#d6b56a"/><Box position={[-156,1,-298]} size={[284,2,.6]} color="#d6b56a"/><Box position={[156,1,-298]} size={[284,2,.6]} color="#d6b56a"/>
+  <Box position={[0,-.4,-1310]} size={[75,.7,2060]} color="#536750"/>
+  <Box position={[0,.02,-1300]} size={[24,.14,2040]} color="#303943"/>
   {Array.from({length:200},(_,i)=><group key={'straight-'+i}>
-   <Box position={[0,.11,-215-i*10]} size={[.18,.03,5]} color="#ece3b4"/>
-   <Box position={[-12.5,.8,-215-i*10]} size={[.4,1.5,10]} color="#b6c1c8"/>
-   <Box position={[12.5,.8,-215-i*10]} size={[.4,1.5,10]} color="#b6c1c8"/>
+   <Box position={[0,.11,-305-i*10]} size={[.18,.03,5]} color="#ece3b4"/>
+   <Box position={[-12.5,.8,-305-i*10]} size={[.4,1.5,10]} color="#b6c1c8"/>
+   <Box position={[12.5,.8,-305-i*10]} size={[.4,1.5,10]} color="#b6c1c8"/>
   </group>)}
-  <Box position={[0,1,-2215]} size={[26,2,.7]} color="#e3ad64"/>
-  <Html position={[0,8,-215]} center><div className="drive-loading">2 KM SPEED STRAIGHT</div></Html>
+  <Box position={[0,1,-2315]} size={[26,2,.7]} color="#e3ad64"/>
+  <Html position={[0,8,-305]} center distanceFactor={35} occlude><div className="drive-loading">2 KM SPEED STRAIGHT</div></Html>
 
  </Instances>;
 });
-function DrivingCar({carId,design,sim,keys,paused,view,orbit,reset,ready,onReady,onHud,traffic}) {
- const group=useRef();const [floor,setFloor]=useState(-.7);const [wheelSpeed,setWheelSpeed]=useState(0);
+function DrivingCar({carId,design,sim,keys,paused,view,orbit,reset,ready,onReady,onHud,traffic,night}) {
+ const group=useRef();const [floor,setFloor]=useState(-.7);const motion=useRef({speed:0,steer:0});
  const target=useRef(new Vector3());const desired=useRef(new Vector3());const ticker=useRef(0);const model=carModels[carId];
  const modelReady=useCallback(y=>{setFloor(y);onReady(true);},[onReady]);
- useEffect(()=>{sim.current={...spawn(),...(reset%2?{x:3,z:-215}:{}),time:sim.current.time};},[reset,sim]);
+ useEffect(()=>{sim.current={...spawn(),...(reset%2?{x:3,z:-305}:{}),time:sim.current.time};},[reset,sim]);
  useFrame(({camera},rawDelta)=>{
   const s=sim.current;const dt=Math.min(rawDelta,.04);const input=keys.current;
   if(!paused&&ready){
    s.time+=dt;
-   const throttle=(input.has('KeyW')?1:0)-(input.has('KeyS')?1:0);
-   const braking=input.has('Space');
-   s.speed+=throttle*(s.speed*throttle<0?24:11)*dt;
-   const friction=braking?34:throttle?1:4;
-   s.speed=Math.sign(s.speed)*Math.max(0,Math.abs(s.speed)-friction*dt);
-   s.speed=clamp(s.speed,-10,(DRIVE_LIMITS[carId]||300)/3.6);
-   s.peak=Math.max(s.peak,Math.abs(s.speed)*3.6);
-   const steering=(input.has('KeyA')?1:0)-(input.has('KeyD')?1:0);
-   s.yaw+=steering*s.speed/5.2*.48/(1+Math.abs(s.speed)*.04)*dt;
-   const nx=s.x-Math.sin(s.yaw)*s.speed*dt,nz=s.z-Math.cos(s.yaw)*s.speed*dt;
-   const onStraight=Math.abs(nx)<10&&nz<=-200&&nz>=-2210;
-   const outside=!onStraight&&(Math.abs(nx)>200||Math.abs(nz)>200);
-   const trafficHit=Object.values(traffic.current).some(v=>Math.hypot(nx-v.x,nz-v.z)<4.4);
-   const collision=outside||trafficHit||BLOCKS.some(b=>Math.abs(nx-b.x)<b.w/2+2.5&&Math.abs(nz-b.z)<b.d/2+2.5);
-   if(collision){s.speed=-s.speed*.12;s.hit=1;}
-   else{s.x=nx;s.z=nz;s.distance+=Math.abs(s.speed)*dt;}
-   if(!onStraight&&roadDistance(s.x)>7&&roadDistance(s.z)>7)s.speed*=Math.exp(-dt*2);
-   s.hit=Math.max(0,s.hit-dt);
+   stepVehicle(s,input,rawDelta,(DRIVE_LIMITS[carId]||300)/3.6,(x,z)=>{
+    const straight=Math.abs(x)<10&&z<=-CITY_EDGE&&z>=-2310;
+    return (!straight&&(Math.abs(x)>CITY_EDGE+8||Math.abs(z)>CITY_EDGE+8)) ||
+     Object.values(traffic.current).some(v=>Math.hypot(x-v.x,z-v.z)<4.4) ||
+     BLOCKS.some(b=>Math.abs(x-b.x)<b.w/2+1.3&&Math.abs(z-b.z)<b.d/2+2.1);
+   });
+   if(!(Math.abs(s.x)<10&&s.z<-CITY_EDGE)&&roadDistance(s.x)>7&&roadDistance(s.z)>7)s.speed*=Math.exp(-dt*2);
   }
-  if(group.current){group.current.position.set(s.x,-floor+.12,s.z);group.current.rotation.y=s.yaw;}
+  motion.current.speed=paused?0:s.speed;motion.current.steer=s.steer||0;
+
+  if(group.current){group.current.position.set(s.x,-floor+.12,s.z);group.current.rotation.y=s.yaw;group.current.rotation.x+=(clamp(-(s.acceleration||0)*.002,-.035,.035)-group.current.rotation.x)*.12;group.current.rotation.z+=(clamp((s.steer||0)*s.speed*.003,-.045,.045)-group.current.rotation.z)*.1;}
   let offset=view==='Front'?[0,3.5,-10]:view==='Left'?[-10,3,1]:view==='Right'?[10,3,1]:view==='Overhead'?[0,22,1]:[0,4.5,11];
   if(view==='Free'){const angle=orbit.current.yaw,pitch=orbit.current.pitch;offset=[Math.sin(angle)*12*Math.cos(pitch),3+12*Math.sin(pitch),Math.cos(angle)*12*Math.cos(pitch)];}
   const [x,y,z]=offset;
   desired.current.set(s.x+x*Math.cos(s.yaw)+z*Math.sin(s.yaw),y,s.z-x*Math.sin(s.yaw)+z*Math.cos(s.yaw));
-  camera.position.lerp(desired.current,1-Math.exp(-dt*7));
+  camera.position.lerp(desired.current,1-Math.exp(-dt*6));
+  camera.fov+=(60+Math.min(9,Math.abs(s.speed)*.12)-camera.fov)*.03;camera.updateProjectionMatrix();
   target.current.set(s.x,1,s.z);camera.lookAt(target.current);
   ticker.current+=dt;
-  if(ticker.current>.1){ticker.current=0;setWheelSpeed(paused?0:s.speed*3.6);onHud({...s});}
+  if(ticker.current>.1){ticker.current=0;onHud({...s});}
  });
- return <group ref={group}><CarModel modelUrl={model.url} modelRotation={model.rotation||0} customization={design} skip onReady={modelReady} driveSpeed={wheelSpeed}/></group>;
+ return <group ref={group}><CarModel modelUrl={model.url} modelRotation={model.rotation||0} customization={design} skip onReady={modelReady} animateWheels motion={motion}/><VehicleLighting floor={floor} night={night} brake={keys.current.has("Space")}/></group>;
 }
 function initialDesign(carId,location) {
  if(location.state?.design)return normalizeDesign(location.state.design)||normalizeDesign({});
@@ -164,24 +154,21 @@ export default function TestDrive(){
  const fullscreen=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(root.current.requestFullscreen)await root.current.requestFullscreen();else setMessage('This browser uses the full-page view.');}catch{setMessage('Fullscreen is unavailable; the full-page view is active.');}};
 
  return <main className="test-drive" ref={root} tabIndex={-1}>
-  <DriveBoundary><Canvas camera={{position:[3,5,29],fov:60,near:.1,far:350}} dpr={lite?1:[1,1.4]} gl={{antialias:true}} onPointerDown={e=>{if(view==='Free'){drag.current={x:e.clientX,y:e.clientY};e.target.setPointerCapture?.(e.pointerId);}}} onPointerMove={e=>{if(view==='Free'&&drag.current){orbit.current.yaw-=(e.clientX-drag.current.x)*.008;orbit.current.pitch=clamp(orbit.current.pitch+(e.clientY-drag.current.y)*.005,0,1.1);drag.current={x:e.clientX,y:e.clientY};}}} onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}}>
-   <color attach="background" args={['#a5becb']}/><fog attach="fog" args={['#a5becb',100,240]}/><DriveSky night={night}/>
-   <City sim={sim}/><CityLife sim={sim} traffic={traffic} paused={paused||!ready} lite={lite}/><Suspense fallback={<Html center><div className="drive-loading">Loading your customized car…</div></Html>}>
+  <DriveBoundary><Canvas shadows={!lite} camera={{position:[3,5,29],fov:60,near:.1,far:550}} dpr={lite?1:[1,1.4]} gl={{antialias:true}} onPointerDown={e=>{if(view==='Free'){drag.current={x:e.clientX,y:e.clientY};e.target.setPointerCapture?.(e.pointerId);}}} onPointerMove={e=>{if(view==='Free'&&drag.current){orbit.current.yaw-=(e.clientX-drag.current.x)*.008;orbit.current.pitch=clamp(orbit.current.pitch+(e.clientY-drag.current.y)*.005,0,1.1);drag.current={x:e.clientX,y:e.clientY};}}} onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}}>
+   <color attach="background" args={['#a5becb']}/><fog attach="fog" args={['#a5becb',190,470]}/><DriveSky night={night} sim={sim} lite={lite}/>
+   <City sim={sim}/><CityDetails sim={sim} night={night} lite={lite}/><CityLife sim={sim} traffic={traffic} paused={paused||!ready} lite={lite}/><Suspense fallback={<Html center><div className="drive-loading">Loading your customized car…</div></Html>}>
     <Environment resolution={64}><Lightformer position={[0,8,0]} rotation={[Math.PI/2,0,0]} scale={[15,8,1]} intensity={2}/></Environment>
-    <DrivingCar carId={carId} design={design} sim={sim} keys={keys} paused={paused} view={view} orbit={orbit} reset={reset} ready={ready} onReady={setReady} onHud={setHud} traffic={traffic}/>
+    <DrivingCar carId={carId} design={design} sim={sim} keys={keys} paused={paused} view={view} orbit={orbit} reset={reset} ready={ready} onReady={setReady} onHud={setHud} traffic={traffic} night={night}/>
    </Suspense>
   </Canvas></DriveBoundary>
   <header className="drive-top"><Link to={`/cars/${carId}#customize-car`} state={{savedDesign:design}}><Icon name="arrow-left"/> Exit drive</Link><div><small>LIMITLESS / CITY DRIVE</small><strong>{car.brand} {car.name}</strong></div><button onClick={fullscreen}>Fullscreen</button></header>
   <aside className="drive-cameras" aria-label="Camera views"><label className="drive-camera-select">Camera<select value={view} onChange={e=>{setView(e.target.value);root.current?.focus();}}>{CAMERAS.map(v=><option key={v}>{v}</option>)}</select></label>{CAMERAS.map(v=><button className="drive-camera-preset" key={v} aria-pressed={view===v} onClick={()=>{setView(v);root.current?.focus();}}>{v}</button>)}<div className="drive-time-toggle" role="group" aria-label="Time of day"><button aria-pressed={!night} onClick={()=>{setNight(false);root.current?.focus();}}>Day</button><button aria-pressed={night} onClick={()=>{setNight(true);root.current?.focus();}}>Night</button></div><button aria-pressed={lite} onClick={()=>{setLite(v=>!v);root.current?.focus();}}>Lite graphics</button></aside>
-  <div className="drive-dashboard"><div className="drive-speed"><strong>{Math.round(Math.abs(hud.speed)*3.6)}</strong><span>KM/H · {hud.speed<-.2?'REVERSE':'DRIVE'}</span><small>{(hud.distance/1000).toFixed(2)} km explored</small><small>Peak {Math.round(hud.peak||0)} / {DRIVE_LIMITS[carId]||300} km/h arcade limit</small></div><svg className="drive-map" viewBox="-220 -220 440 440" role="img" aria-label="City map and your position"><rect x="-220" y="-220" width="440" height="440" fill="#111e28"/>{STREETS.map(s=><path key={s} d={`M${s} -208V208M-208 ${s}H208`} stroke="#657984" strokeWidth="10"/>)}<path d="M0 -6 4 5 0 3-4 5Z" fill="#ff6534" transform={`translate(${hud.x},${Math.max(-210,hud.z)}) rotate(${-hud.yaw*180/Math.PI})`}/></svg></div>
+  <div className="drive-dashboard"><div className="drive-speed"><strong>{Math.round(Math.abs(hud.speed)*3.6)}</strong><span>KM/H · {hud.speed<-.2?'REVERSE':'DRIVE'}</span><small>{(hud.distance/1000).toFixed(2)} km explored</small><small>Peak {Math.round(hud.peak||0)} / {DRIVE_LIMITS[carId]||300} km/h arcade limit</small></div><svg className="drive-map" viewBox="-320 -320 640 640" role="img" aria-label="City map and your position"><rect x="-320" y="-320" width="640" height="640" fill="#111e28"/>{STREETS.map(s=><path key={s} d={`M${s} -304V304M-304 ${s}H304`} stroke="#657984" strokeWidth="10"/>)}<path d="M0 -6 4 5 0 3-4 5Z" fill="#ff6534" transform={`translate(${hud.x},${Math.max(-310,hud.z)}) rotate(${-hud.yaw*180/Math.PI})`}/></svg></div>
   <footer className="drive-bottom"><span>W / S accelerate & reverse · A / D steer · Space brake · C camera · Esc pause</span><button onClick={()=>{setPaused(true);keys.current.clear();}}>Pause</button><button onClick={()=>{setReset(v=>v+2-v%2);keys.current.clear();root.current?.focus();}}>Reset car</button><button onClick={()=>{setReset(v=>v+1+(v%2));keys.current.clear();root.current?.focus();}}>Speed straight</button></footer>
   {view==='Free'&&<p className="drive-free-tip">Drag the scene to look around your car</p>}
   <div className="drive-touch" aria-label="Touch driving controls"><div className="drive-steering"><TouchControl code="KeyA" label="Left" icon="arrow-left" keys={keys} disabled={paused}/><TouchControl code="KeyD" label="Right" icon="arrow-right" keys={keys} disabled={paused}/></div><div className="drive-pedals"><TouchControl code="KeyS" label="Reverse" icon="arrow-down" keys={keys} disabled={paused}/><TouchControl code="Space" label="Brake" icon="pause" keys={keys} disabled={paused}/><TouchControl code="KeyW" label="Go" icon="arrow-up" keys={keys} disabled={paused}/></div></div>
-  {hud.hit>0&&<div className="drive-collision" role="status">Collision — slow down or reverse</div>}
+  {hud.hit>0&&<div className="drive-collision" role="status">Contact — reverse to rejoin the road</div>}
   {message&&<p className="drive-message" role="status">{message}</p>}
   {paused&&<div className="drive-pause"><section><p className="eyebrow">YOUR DESIGN. YOUR DRIVE.</p><h1>THE CITY IS YOURS.</h1><p>Explore the expanded city with moving traffic and sidewalk pedestrians. Take the northern road or use Speed straight to reach the 2 km acceleration corridor.</p><p className="drive-touch-help">Hold Go to accelerate and use Left / Right with your other thumb. Hold Brake to slow down; Reverse backs up. Choose Free camera and drag the scene to look around. Landscape gives you a wider view.</p><dl className="drive-keyboard-help"><div><dt>W / S</dt><dd>Accelerate / reverse</dd></div><div><dt>A / D</dt><dd>Steer left / right</dd></div><div><dt>SPACE</dt><dd>Brake</dd></div><div><dt>C / ESC</dt><dd>Camera / pause</dd></div></dl><button disabled={!ready} onClick={resume}>{ready?'Start / resume drive':'Loading your car…'}</button><Link to={`/cars/${carId}#customize-car`} state={{savedDesign:design}}>Back to customization</Link><small>Touch controls are available on phones. Traffic follows city loops and stops for lights. Pedestrians stay on sidewalks. Speed limits are arcade settings, not measured real-world performance.</small></section></div>}
  </main>;
 }
-
-
-
